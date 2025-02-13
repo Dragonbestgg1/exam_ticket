@@ -14,7 +14,7 @@ async function validateCredentials(credentials: Record<string, string> | null): 
     return null;
 }
 
-const authOptions: AuthOptions = { // NO export here initially
+const authOptions: AuthOptions = {
     providers: [
         CredentialsProvider({
             name: "Admin-Panel",
@@ -50,10 +50,10 @@ const authOptions: AuthOptions = { // NO export here initially
             return token;
         },
         async redirect({ url, baseUrl }) {
-            if (url.startsWith("/")) return `<span class="math-inline">\{baseUrl\}</span>{url}`;
+            if (url.startsWith("/")) return `${baseUrl}${url}`;
             else if (new URL(url).origin === baseUrl) return url;
             return baseUrl
-        },
+        }
     },
 };
 
