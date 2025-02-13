@@ -1,8 +1,12 @@
-import NextAuth, { AuthOptions } from "next-auth";
+import NextAuth, { AuthOptions, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from 'bcryptjs';
+import { NextRequest } from 'next/server';
+import { Session } from 'next-auth';
+import type { JWT } from "next-auth/jwt";
 
-async function validateCredentials(credentials: any) {
+
+async function validateCredentials(credentials: Record<string, string> | null): Promise<{ id: string; name: string; username: string; } | null> { // Keep this type for internal validation
     if (!credentials) return null;
     const { username, password } = credentials;
     const validPassword = await bcrypt.compare(password, await bcrypt.hash(process.env.ADMIN_PASSWORD || 'adminpassword', 10));
@@ -20,8 +24,12 @@ export const authOptions: AuthOptions = {
                 username: { label: "Username", type: "text" },
                 password: { label: "Password", type: "password" },
             },
-            async authorize(credentials: any, req: any) {
-                return await validateCredentials(credentials);
+            async authorize(credentials: Record<"password" | "username", string> | undefined)/* : Promise<User | null> */ { // Simplified authorize signature - removed req and return type for now
+                const validatedUser = await validateCredentials(credentials as Record<string, string> | null); // Type assertion for internal validation
+                if (validatedUser) {
+                    return validatedUser as User; // Type assertion to User
+                }
+                return null;
             },
         }),
     ],
@@ -30,24 +38,24 @@ export const authOptions: AuthOptions = {
     },
     secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
-        async session({ session, token }: any) {
-            session.user.role = 'admin';
-            session.user.customVariable = "yourVariableValue";
+        async session({ session, token }: { session: Session; token: JWT }) {
+            if (session?.user) {
+                session.user.role = 'admin';
+                session.user.customVariable = "yourVariableValue";
+            }
             return session;
         },
-        async jwt({ token, user }: any) {
+        async jwt({ token, user }: { token: JWT; user?: User }) {
             if (user) {
                 token.role = 'admin';
             }
             return token;
         },
         async redirect({ url, baseUrl }) {
-
             if (url.startsWith("/")) return `${baseUrl}${url}`;
-
             else if (new URL(url).origin === baseUrl) return url;
             return baseUrl
-          },
+        },
     },
 };
 
