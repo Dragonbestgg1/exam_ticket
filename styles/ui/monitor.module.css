@@ -12,7 +12,8 @@
 .monitor {
     width: 50vw;
     height: 35vh;
-    background-color: black;
+    /* Replace plain grey with a subtle gradient background */
+    background: linear-gradient(to bottom, #333, #555); /* Darker grey to lighter grey gradient */
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -21,8 +22,11 @@
     padding: 20px;
     padding-left: 30px;
     border-radius: 5px;
-    border: 5px solid rgb(215, 56, 255);
-    box-shadow: 3px 5px 5px magenta;
+    /* Enhanced border for bezel effect */
+    border: 8px solid #222; /* Darker border color for bezel */
+    box-shadow: 0 0 15px rgba(100, 0, 200, 0.7); /* Magenta box shadow, slightly adjusted */
+    /* Add inner shadow for screen depth */
+    box-shadow: 0 0 15px rgba(100, 0, 200, 0.7), inset 0 0 20px rgba(0, 0, 0, 0.8); /* Added inset shadow */
 }
 
 .student {
@@ -41,6 +45,7 @@
     font-size: 24px;
     color: white;
     font-weight: bolder;
+    text-shadow: 1px 1px 2px black; /* Optional: Add text shadow for screen effect */
 }
 
 .timers {
@@ -83,12 +88,14 @@
     font-size: 24px;
     color: white;
     font-weight: bolder;
+    text-shadow: 1px 1px 2px black; /* Optional: Add text shadow for screen effect */
 }
 
 .time {
     font-size: 24px;
     color: white;
     font-weight: bolder;
+    text-shadow: 1px 1px 2px black; /* Optional: Add text shadow for screen effect */
 }
 
 .runtimer {
@@ -100,6 +107,7 @@
     justify-content: center;
     align-items: center;
     gap: 10px;
+    text-shadow: 1px 1px 2px black; /* Optional: Add text shadow for screen effect */
 }
 
 /* #endregion */

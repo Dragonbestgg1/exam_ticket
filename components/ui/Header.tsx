@@ -47,7 +47,7 @@ export default function Header() {
     return (
         <header className={`${style.header}`}>
             <nav className={`${style.nav}`}>
-                <Link href="/"><IoHome /></Link>
+                <Link href="/" className={`${style.home}`}><IoHome /></Link>
                 {session && session.user ? ( 
                     <button onClick={handleLogout} className={`${style.auth} ${style.logoutButton}`}>
                         <GiEntryDoor />
