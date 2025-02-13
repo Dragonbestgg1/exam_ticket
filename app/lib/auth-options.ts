@@ -57,4 +57,4 @@ const authOptions: AuthOptions = {
     },
 };
 
-export { authOptions }; // Export it here
+export { authOptions };
