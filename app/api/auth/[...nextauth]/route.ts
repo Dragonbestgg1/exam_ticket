@@ -1,12 +1,10 @@
 import NextAuth, { AuthOptions, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from 'bcryptjs';
-import { NextRequest } from 'next/server';
 import { Session } from 'next-auth';
 import type { JWT } from "next-auth/jwt";
 
-
-async function validateCredentials(credentials: Record<string, string> | null): Promise<{ id: string; name: string; username: string; } | null> { // Keep this type for internal validation
+async function validateCredentials(credentials: Record<string, string> | null): Promise<{ id: string; name: string; username: string; } | null> {
     if (!credentials) return null;
     const { username, password } = credentials;
     const validPassword = await bcrypt.compare(password, await bcrypt.hash(process.env.ADMIN_PASSWORD || 'adminpassword', 10));
@@ -24,10 +22,10 @@ export const authOptions: AuthOptions = {
                 username: { label: "Username", type: "text" },
                 password: { label: "Password", type: "password" },
             },
-            async authorize(credentials: Record<"password" | "username", string> | undefined)/* : Promise<User | null> */ { // Simplified authorize signature - removed req and return type for now
-                const validatedUser = await validateCredentials(credentials as Record<string, string> | null); // Type assertion for internal validation
+            async authorize(credentials: Record<"password" | "username", string> | undefined) {
+                const validatedUser = await validateCredentials(credentials as Record<string, string> | null);
                 if (validatedUser) {
-                    return validatedUser as User; // Type assertion to User
+                    return validatedUser as User;
                 }
                 return null;
             },
