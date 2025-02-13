@@ -6,4 +6,31 @@
     height: 100vh;
     width: 100vw;
     gap: 40px;
+    cursor: default;
+}
+
+.form{
+    width: 80vw;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+    padding: 20px;
+    border: 1px solid white;
+    border-radius: 15px;
+}
+
+.mainInfo{
+    width: 100%;
+    height: 20vh;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 50px;
+    padding: 20px;
+    border-bottom: 1px solid white;
+    flex-wrap: wrap;
 }
