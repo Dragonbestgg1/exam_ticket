@@ -7,6 +7,7 @@ import { IoHome } from "react-icons/io5";
 import { GiExitDoor, GiEntryDoor } from "react-icons/gi";
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
+import { PiExam } from "react-icons/pi";
 
 export default function Header() {
     const [time, setTime] = useState('');
@@ -48,10 +49,13 @@ export default function Header() {
         <header className={`${style.header}`}>
             <nav className={`${style.nav}`}>
                 <Link href="/" className={`${style.home}`}><IoHome /></Link>
-                {session && session.user ? ( 
-                    <button onClick={handleLogout} className={`${style.auth} ${style.logoutButton}`}>
-                        <GiEntryDoor />
-                    </button>
+                {session && session.user ? (
+                    <>
+                        <button onClick={handleLogout} className={`${style.auth} ${style.logoutButton}`}>
+                            <GiEntryDoor />
+                        </button>
+                        <Link href="/addExam" className={`${style.exam}`}><PiExam /></Link>
+                    </>
                 ) : (
                     <Link href="/auth" className={`${style.auth}`}>
                         <GiExitDoor />
