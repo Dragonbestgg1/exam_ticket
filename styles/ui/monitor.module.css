@@ -1,0 +1,105 @@
+.main {
+    width: 100vw;
+    height: 40vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* #region dispaly */
+.monitor {
+    width: 50vw;
+    height: 35vh;
+    background-color: black;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 20px;
+    padding: 20px;
+    padding-left: 30px;
+    border-radius: 5px;
+    border: 5px solid rgb(215, 56, 255);
+    box-shadow: 3px 5px 5px magenta;
+}
+
+.student {
+    width: 100%;
+    height: 5vh;
+    background-color: transparent;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+}
+
+.studentName {
+    font-size: 24px;
+    color: white;
+    font-weight: bolder;
+}
+
+.timers {
+    width: 100%;
+    height: 15vh;
+    background-color: transparent;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 10px;
+}
+
+.timer {
+    width: 40vh;
+    height: 13vh;
+    background-color: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+    padding: 10px;
+}
+
+.runtimes {
+    width: 100%;
+    height: 5vh;
+    background-color: transparent;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    gap: 20px;
+    padding: 10px;
+}
+
+.timerTitle {
+    font-size: 24px;
+    color: white;
+    font-weight: bolder;
+}
+
+.time {
+    font-size: 24px;
+    color: white;
+    font-weight: bolder;
+}
+
+.runtimer {
+    display: flex;
+    font-size: 18px;
+    color: white;
+    font-weight: bolder;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+/* #endregion */
