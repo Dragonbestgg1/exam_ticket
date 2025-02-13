@@ -33,6 +33,7 @@ export default function AddExam() {
                         </select>
                     </div>
                 </div>
+                <textarea placeholder='Lūgums skolēnus atdalīt ar komatu' className={`${style.textarea}`} />
             </form>
         </div>
     )

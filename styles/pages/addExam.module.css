@@ -34,3 +34,19 @@
     border-bottom: 1px solid white;
     flex-wrap: wrap;
 }
+
+.input{
+    
+}
+
+.textarea{
+    width: 100%;
+    height: 50vh;
+    resize: none;
+    border: none;
+    border-radius: 5px;
+    padding: 20px;
+    outline: none;
+    font-size: 18px;
+    line-height: 24px;
+}
