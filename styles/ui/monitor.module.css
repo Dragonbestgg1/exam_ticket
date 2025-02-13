@@ -11,9 +11,8 @@
 /* #region dispaly */
 .monitor {
     width: 50vw;
-    height: 35vh;
-    /* Replace plain grey with a subtle gradient background */
-    background: linear-gradient(to bottom, #333, #555); /* Darker grey to lighter grey gradient */
+    height: 50vh;
+    background: linear-gradient(to bottom, #333, #555);
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -22,11 +21,9 @@
     padding: 20px;
     padding-left: 30px;
     border-radius: 5px;
-    /* Enhanced border for bezel effect */
-    border: 8px solid #222; /* Darker border color for bezel */
-    box-shadow: 0 0 15px rgba(100, 0, 200, 0.7); /* Magenta box shadow, slightly adjusted */
-    /* Add inner shadow for screen depth */
-    box-shadow: 0 0 15px rgba(100, 0, 200, 0.7), inset 0 0 20px rgba(0, 0, 0, 0.8); /* Added inset shadow */
+    border: 8px solid #222;
+    box-shadow: 0 0 15px rgba(100, 0, 200, 0.7);
+    box-shadow: 0 0 15px rgba(100, 0, 200, 0.7), inset 0 0 20px rgba(0, 0, 0, 0.8);
 }
 
 .student {

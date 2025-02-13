@@ -4,8 +4,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 20px;
+    justify-content: flex-start;
+    gap: 40px;
 }
 
 .card{
@@ -36,13 +36,23 @@
     gap: 20px;
 }
 
-.input{
+.input {
     width: 100%;
     padding: 10px;
     border-radius: 5px;
-    border: 1px solid black;
+    border: none;
+    border-bottom: 2px solid black;
     color: black;
-}
+    background: none;
+    transition: width 0.3s ease, transform 0.3s ease;
+    position: relative;
+    left: 0;
+  }
+  
+  .input:hover {
+    width: 110%;
+    transform: translateX(-5%);
+  }
 
 .button{
     padding: 10px 20px;

@@ -1,3 +1,43 @@
-.main{
-    
+.main {
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll;
+    width: 40vw;
+    height: 43vh;
+    padding: 10px;
+}
+
+.ul {
+    display: flex;
+    flex-direction: column;
+    margin-left: 30px;
+    padding: 20px;
+    gap: 40px;
+}
+
+.list {
+    width: 100%;
+    list-style-type: circle;
+    padding: 0;
+    margin: 0;
+    border: 3px solid white;
+    padding: 10px;
+}
+
+.align {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.name, 
+.time {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 20px;
+    font-weight: bolder;
 }

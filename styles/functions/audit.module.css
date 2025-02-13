@@ -1,0 +1,92 @@
+.main {
+    width: 50vw;
+    height: 30vh;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 5px;
+    gap: 20px;
+}
+
+.testing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 20%;
+    gap: 40px;
+    padding: 20px;
+    padding-left: 30px;
+    padding-top: 0px;
+}
+
+.selector {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 90%;
+    height: 40%;
+    gap: 60px;
+    padding: 20px;
+    padding-top: 40px;
+    padding-right: 170px;
+}
+
+/* #region buttons */
+.selectorButton {
+    width: 260px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: bolder;
+    font-size: 18px;
+}
+
+.selectorButton>svg {
+    transition: transform 0.3s ease-out;
+}
+
+.start,
+.end {
+    border-radius: 15px;
+    width: 6vw;
+    height: 7vh;
+    cursor: pointer;
+
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.start {
+    background-color: rgba(0, 255, 0, 0.3);
+}
+
+.end {
+    background-color: rgba(255, 0, 0, 0.3);
+}
+
+.start:hover {
+    background-color: rgba(0, 255, 0, 0.6);
+}
+
+.end:hover {
+    background-color: rgba(255, 0, 0, 0.6);
+}
+
+.start.active{
+    background-color: rgba(0, 255, 0, 1);
+}
+
+.end:active{
+    background-color: rgba(255, 0, 0, 1);
+}
+
+/* #endregion */

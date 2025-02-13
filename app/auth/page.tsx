@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import style from '@/styles/pages/auth.module.css'
+import Header from '@/components/ui/Header';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -31,6 +32,7 @@ export default function LoginPage() {
 
   return (
     <div className={`${style.main}`}>
+      <Header />
       <div className={`${style.card}`}>
         <h2 className={`${style.title}`}>Admin Login</h2>
         <form className={`${style.form}`} onSubmit={handleSubmit}>
