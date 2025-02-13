@@ -8,28 +8,28 @@
     gap: 40px;
 }
 
-.card{
+.card {
     width: 40vw;
     height: 50vh;
-    background-color: aqua;
+    background-color: rgb(143, 142, 142);
     padding: 40px;
     gap: 20px;
     border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
 }
 
-.title{
+.title {
     font-size: 24px;
     color: black;
     font-weight: bolder;
     cursor: default;
 }
 
-.form{
+.form {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -47,14 +47,19 @@
     transition: width 0.3s ease, transform 0.3s ease;
     position: relative;
     left: 0;
-  }
-  
-  .input:hover {
+    cursor: pointer;
+}
+
+.input:hover {
     width: 110%;
     transform: translateX(-5%);
-  }
+}
 
-.button{
+.input::placeholder{
+    color: black;
+}
+
+.button {
     padding: 10px 20px;
     border-radius: 5px;
     width: 13vw;
@@ -66,11 +71,11 @@
     transition: background-color 0.3s ease;
 }
 
-.button:hover{
+.button:hover {
     background-color: darkblue;
 }
 
-.error{
+.error {
     color: red;
     font-size: 16px;
     margin-top: 10px;

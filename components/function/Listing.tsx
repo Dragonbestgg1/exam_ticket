@@ -20,6 +20,36 @@ export default function Listing() {
       name2: "Smith",
       timeValue: "16:00"
     },
+    {
+      name1: "Edmunds",
+      name2: "Berzons",
+      timeValue: "12:00"
+    },
+    {
+      name1: "John",
+      name2: "Doe",
+      timeValue: "14:30"
+    },
+    {
+      name1: "Jane",
+      name2: "Smith",
+      timeValue: "16:00"
+    },
+    {
+      name1: "Edmunds",
+      name2: "Berzons",
+      timeValue: "12:00"
+    },
+    {
+      name1: "John",
+      name2: "Doe",
+      timeValue: "14:30"
+    },
+    {
+      name1: "Jane",
+      name2: "Smith",
+      timeValue: "16:00"
+    },
   ];
 
   const constantTimeLabel = "Sākas:";

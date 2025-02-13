@@ -12,7 +12,7 @@
     flex-direction: column;
     margin-left: 30px;
     padding: 20px;
-    gap: 40px;
+    gap: 20px;
 }
 
 .list {
@@ -20,8 +20,14 @@
     list-style-type: circle;
     padding: 0;
     margin: 0;
-    border: 3px solid white;
+    border-bottom: 3px solid white;
+    border-top: 1px solid white;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-top-right-radius: 15px;
+    border-top-left-radius: 15px;
     padding: 10px;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.3);
 }
 
 .align {
@@ -40,4 +46,19 @@
     justify-content: flex-start;
     font-size: 20px;
     font-weight: bolder;
+    cursor: default;
 }
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 12px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
