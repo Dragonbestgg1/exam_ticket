@@ -36,7 +36,7 @@ export const authOptions: AuthOptions = {
     },
     secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
-        async session({ session, token }: { session: Session; token: JWT }) {
+        async session({ session }: { session: Session; token: JWT }) {
             if (session?.user) {
                 session.user.role = 'admin';
                 session.user.customVariable = "yourVariableValue";
