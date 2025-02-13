@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { Session } from 'next-auth';
 import type { JWT } from "next-auth/jwt";
 
+
 async function validateCredentials(credentials: Record<string, string> | null): Promise<{ id: string; name: string; username: string; } | null> {
     if (!credentials) return null;
     const { username, password } = credentials;
@@ -14,7 +15,7 @@ async function validateCredentials(credentials: Record<string, string> | null): 
     return null;
 }
 
-export const authOptions: AuthOptions = {
+export const authOptions: AuthOptions = { // Keep authOptions as a const
     providers: [
         CredentialsProvider({
             name: "Admin-Panel",
@@ -22,7 +23,7 @@ export const authOptions: AuthOptions = {
                 username: { label: "Username", type: "text" },
                 password: { label: "Password", type: "password" },
             },
-            async authorize(credentials: Record<"password" | "username", string> | undefined) {
+            async authorize(credentials: Record<"password" | "username", string> | undefined): Promise<User | null> {
                 const validatedUser = await validateCredentials(credentials as Record<string, string> | null);
                 if (validatedUser) {
                     return validatedUser as User;
@@ -36,7 +37,7 @@ export const authOptions: AuthOptions = {
     },
     secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
-        async session({ session }: { session: Session; token: JWT }) {
+        async session({ session }: { session: Session }) {
             if (session?.user) {
                 session.user.role = 'admin';
                 session.user.customVariable = "yourVariableValue";
@@ -57,5 +58,7 @@ export const authOptions: AuthOptions = {
     },
 };
 
-const handler = NextAuth(authOptions);
+const handler = NextAuth(authOptions); // Create the handler using authOptions
+
+// Export the handler as GET and POST - THIS IS CORRECT FOR APP ROUTER
 export { handler as GET, handler as POST };
