@@ -1,6 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
 import getMongoClientPromise from "@/app/lib/mongodb";
-import { ObjectId } from "mongodb";
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     if (existingExam) {
       const existingClasses = existingExam.classes || {};
-      let updatedClasses = { ...existingClasses };
+      const updatedClasses = { ...existingClasses };
 
       if (updatedClasses[examClass]) {
         updatedClasses[examClass].students = [
