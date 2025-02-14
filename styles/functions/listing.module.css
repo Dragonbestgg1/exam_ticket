@@ -37,14 +37,27 @@
     justify-content: space-between;
 }
 
-.name, 
+.name,
 .time {
     display: flex;
     flex-direction: row;
-    gap: 10px;
+    gap: 5px;
     align-items: center;
     justify-content: flex-start;
     font-size: 20px;
     font-weight: bolder;
     cursor: default;
+}
+
+.name {
+    width: 59%;
+}
+
+.name h1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0;
+    display: block;
+    max-width: 100%;
 }

@@ -1,76 +1,75 @@
 "use client"
 
 import style from '@/styles/functions/listing.module.css';
-import { useState, useEffect, useMemo } from 'react'; // Import useState, useEffect, useMemo
+import { useState, useEffect, useMemo } from 'react';
 
 interface ListingProps {
-    filterText: string; // Prop to receive filter text from parent
+    filterText: string;
 }
 
-export default function Listing({ filterText }: ListingProps) { // Destructure filterText from props
+export default function Listing({ filterText }: ListingProps) {
 
-    const initialRecords = useMemo(() => [ // It's better to keep initial records separate for reset if needed
+    const initialRecords = useMemo(() => [
         {
-            name1: "Edmunds1",
-            name2: "Berzons",
+            name: "Edmunds1 VeryLongName",
+            surname: "Berzons VeryLongSurname",
             timeValue: "12:00"
         },
         {
-            name1: "John",
-            name2: "Doe",
+            name: "John",
+            surname: "Doe",
             timeValue: "14:30"
         },
         {
-            name1: "Jane",
-            name2: "Smith",
+            name: "Jane",
+            surname: "Smith",
             timeValue: "16:00"
         },
         {
-            name1: "Edmunds",
-            name2: "Berzons",
+            name: "Edmunds",
+            surname: "Berzons",
             timeValue: "12:00"
         },
         {
-            name1: "John",
-            name2: "Doe",
+            name: "John",
+            surname: "Doe",
             timeValue: "14:30"
         },
         {
-            name1: "Jane",
-            name2: "Smith",
+            name: "Jane",
+            surname: "Smith",
             timeValue: "16:00"
         },
         {
-            name1: "Edmunds",
-            name2: "Berzons",
+            name: "Edmunds",
+            surname: "Berzons",
             timeValue: "12:00"
         },
         {
-            name1: "John",
-            name2: "Doe",
+            name: "John",
+            surname: "Doe",
             timeValue: "14:30"
         },
         {
-            name1: "Jane",
-            name2: "Smith",
+            name: "Jane",
+            surname: "Smith",
             timeValue: "16:00"
         },
     ], []);
 
 
-    const [records, setRecords] = useState(initialRecords); // Use state to manage records, initially all records
+    const [records, setRecords] = useState(initialRecords);
     const constantTimeLabel = "Sākas:";
 
     useEffect(() => {
-        // Filter records whenever filterText changes
         const filteredRecords = initialRecords.filter(record => {
             const searchText = filterText.toLowerCase();
-            const name1 = record.name1.toLowerCase();
-            const name2 = record.name2.toLowerCase();
+            const name = record.name.toLowerCase();
+            const surname = record.surname.toLowerCase();
 
-            return name1.includes(searchText) || name2.includes(searchText);
+            return name.includes(searchText) || surname.includes(searchText);
         });
-        setRecords(filteredRecords); // Update records state with filtered results
+        setRecords(filteredRecords);
     }, [filterText, initialRecords]);
 
     return (
@@ -81,10 +80,10 @@ export default function Listing({ filterText }: ListingProps) { // Destructure f
                         <div className={`${style.align}`}>
                             <div className={`${style.name}`}>
                                 <h1>
-                                    {record.name1}
+                                    {record.name}
                                 </h1>
                                 <h1>
-                                    {record.name2}
+                                    {record.surname}
                                 </h1>
                             </div>
                             <div className={`${style.time}`}>
