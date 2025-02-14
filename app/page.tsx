@@ -7,7 +7,7 @@ import AuditButtons from '@/components/function/AuditButtons';
 import style from '@/styles/pages/page.module.css';
 import { useSession } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 const useUserAuthentication = () => {
   const session = useSession();
@@ -27,7 +27,7 @@ export default function HomePage() {
   const [timerStartTime, setTimerStartTime] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [extraTime, setExtraTime] = useState<number>(0);
-  const timerInterval = useRef<number | null>(null);
+  const timerInterval = useRef<NodeJS.Timeout | null>(null);
 
   const parseTimeToMs = (timeString: string): number => {
     const [hours, minutes] = timeString.split(':').map(Number);
@@ -51,18 +51,18 @@ export default function HomePage() {
           setExtraTime(0);
         }
 
-      }, 1000) as any;
+      }, 1000);
     } else {
-      clearInterval(timerInterval.current as any);
+      clearInterval(timerInterval.current as NodeJS.Timeout);
       timerInterval.current = null;
     }
 
-    return () => clearInterval(timerInterval.current as any);
+    return () => clearInterval(timerInterval.current as NodeJS.Timeout);
   }, [isRunning, timerStartTime, calculatedStartTimeMs, calculatedEndTimeMs]);
 
   const handleStart = () => {
     if (isRunning) {
-      clearInterval(timerInterval.current as any);
+      clearInterval(timerInterval.current as NodeJS.Timeout);
     }
     setIsRunning(true);
     setTimerStartTime(Date.now());
@@ -72,7 +72,7 @@ export default function HomePage() {
 
   const handleEnd = () => {
     setIsRunning(false);
-    clearInterval(timerInterval.current as any);
+    clearInterval(timerInterval.current as NodeJS.Timeout);
   };
 
   const formatTime = (ms: number): string => {

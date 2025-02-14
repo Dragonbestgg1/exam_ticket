@@ -1,7 +1,7 @@
 "use client"
 
-import style from '@/styles/functions/listing.module.css'
-import { useState, useEffect } from 'react'; // Import useState and useEffect
+import style from '@/styles/functions/listing.module.css';
+import { useState, useEffect, useMemo } from 'react'; // Import useState, useEffect, useMemo
 
 interface ListingProps {
     filterText: string; // Prop to receive filter text from parent
@@ -9,9 +9,9 @@ interface ListingProps {
 
 export default function Listing({ filterText }: ListingProps) { // Destructure filterText from props
 
-    const initialRecords = [ // It's better to keep initial records separate for reset if needed
+    const initialRecords = useMemo(() => [ // It's better to keep initial records separate for reset if needed
         {
-            name1: "Edmunds",
+            name1: "Edmunds1",
             name2: "Berzons",
             timeValue: "12:00"
         },
@@ -55,7 +55,8 @@ export default function Listing({ filterText }: ListingProps) { // Destructure f
             name2: "Smith",
             timeValue: "16:00"
         },
-    ];
+    ], []);
+
 
     const [records, setRecords] = useState(initialRecords); // Use state to manage records, initially all records
     const constantTimeLabel = "Sākas:";
@@ -70,7 +71,7 @@ export default function Listing({ filterText }: ListingProps) { // Destructure f
             return name1.includes(searchText) || name2.includes(searchText);
         });
         setRecords(filteredRecords); // Update records state with filtered results
-    }, [filterText]); // useEffect dependency on filterText
+    }, [filterText, initialRecords]);
 
     return (
         <div className={`${style.main}`}>
