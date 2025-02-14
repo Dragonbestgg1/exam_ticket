@@ -26,6 +26,15 @@ export default function AddExam() {
     const [filteredExamNames, setFilteredExamNames] = useState<ExamNameData[]>([]);
     const examNameInputRef = useRef<HTMLInputElement | null>(null);
 
+    // Error state variables for each field
+    const [examNameError, setExamNameError] = useState<string | null>(null);
+    const [examDateError, setExamDateError] = useState<string | null>(null);
+    const [examClassError, setExamClassError] = useState<string | null>(null);
+    const [examStartError, setExamStartError] = useState<string | null>(null);
+    const [examDurationError, setExamDurationError] = useState<string | null>(null);
+    const [studentsTextError, setStudentsTextError] = useState<string | null>(null);
+
+
     useEffect(() => {
         const fetchExamNames = async () => {
             setLoadingExams(true);
@@ -58,11 +67,38 @@ export default function AddExam() {
     const handleExamNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const inputValue = e.target.value;
         setExamName(inputValue);
+        setExamNameError(null); // Clear error when user starts typing
 
         const filtered = examNames.filter(exam => exam.examName.toLowerCase().includes(inputValue.toLowerCase()));
         setFilteredExamNames(filtered);
         setIsDropdownVisible(true);
     };
+
+    const handleExamDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setExamDate(e.target.value);
+        setExamDateError(null); // Clear error when user starts typing
+    };
+
+    const handleExamClassChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setExamClass(e.target.value);
+        setExamClassError(null); // Clear error when user starts typing
+    };
+
+    const handleExamStartChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setExamStart(e.target.value);
+        setExamStartError(null); // Clear error when user starts typing
+    };
+
+    const handleExamDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setExamDuration(e.target.value);
+        setExamDurationError(null); // Clear error when user starts typing
+    };
+
+    const handleStudentsTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setStudentsText(e.target.value);
+        setStudentsTextError(null); // Clear error when user starts typing
+    };
+
 
     const handleExamNameBlur = () => {
         setTimeout(() => {
@@ -84,16 +120,58 @@ export default function AddExam() {
         setStudentsText('');
         setIsDropdownVisible(false);
         examNameInputRef.current?.blur();
-        console.log("State after selection:", {
-            examName,
-            examDate,
-            examStart,
-            examDuration
-        });
     };
+
+    const validateForm = () => {
+        let errors: { [key: string]: string | null } = {};
+
+        if (!examName.trim()) {
+            errors.examName = 'Eksāmena nosaukums ir obligāts!';
+        }
+        if (!examDate.trim()) {
+            errors.examDate = 'Eksāmena datums ir obligāts!';
+        }
+        if (!examClass.trim()) {
+            errors.examClass = 'Kurss ir obligāts!';
+        }
+        if (!examStart.trim()) {
+            errors.examStart = 'Eksāmena sākuma laiks ir obligāts!';
+        }
+        if (!examDuration.trim()) {
+            errors.examDuration = 'Eksāmena ilgums ir obligāts!';
+        } else if (isNaN(Number(examDuration))) {
+            errors.examDuration = 'Eksāmena ilgumam jābūt skaitlim!';
+        } else if (Number(examDuration) <= 0) {
+            errors.examDuration = 'Eksāmena ilgumam jābūt pozitīvam skaitlim!';
+        }
+        if (!studentsText.trim()) {
+            errors.studentsText = 'Skolēnu saraksts ir obligāts!';
+        }
+
+        return errors;
+    };
+
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        setExamNameError(null);
+        setExamDateError(null);
+        setExamClassError(null);
+        setExamStartError(null);
+        setExamDurationError(null);
+        setStudentsTextError(null);
+
+        const validationErrors = validateForm();
+        if (Object.keys(validationErrors).length > 0) {
+            setExamNameError(validationErrors.examName || null);
+            setExamDateError(validationErrors.examDate || null);
+            setExamClassError(validationErrors.examClass || null);
+            setExamStartError(validationErrors.examStart || null);
+            setExamDurationError(validationErrors.examDuration || null);
+            setStudentsTextError(validationErrors.studentsText || null);
+            return; // Prevent form submission if validation fails
+        }
+
 
         const examData = {
             examName: examName,
@@ -149,7 +227,6 @@ export default function AddExam() {
                                 onBlur={handleExamNameBlur}
                                 onFocus={handleExamNameFocus}
                                 ref={examNameInputRef}
-                                required
                             />
                             {isDropdownVisible && filteredExamNames.length > 0 && (
                                 <ul className={style.dropdown}>
@@ -162,6 +239,7 @@ export default function AddExam() {
                             {errorLoadingExams && isDropdownVisible && <div className={`${style.dropdown} ${style.error}`}>{errorLoadingExams}</div>}
                             {isDropdownVisible && filteredExamNames.length === 0 && !loadingExams && !errorLoadingExams && examName.trim() !== "" && <div className={style.dropdown}>No matching exams found.</div>}
                         </div>
+                        {examNameError && <p className={style.errorText}>{examNameError}</p>}
                     </div>
                     <div className={`${style.input}`}>
                         <label htmlFor="examDate">Eksāmena datums</label>
@@ -170,9 +248,9 @@ export default function AddExam() {
                             id="examDate"
                             className={`${style.inputCon}`}
                             value={examDate}
-                            onChange={(e) => setExamDate(e.target.value)}
-                            required
+                            onChange={handleExamDateChange}
                         />
+                         {examDateError && <p className={style.errorText}>{examDateError}</p>}
                     </div>
                     <div className={`${style.input}`}>
                         <label htmlFor="class">Kurss</label>
@@ -181,9 +259,9 @@ export default function AddExam() {
                             id="class"
                             className={`${style.inputCon}`}
                             value={examClass}
-                            onChange={(e) => setExamClass(e.target.value)}
-                            required
+                            onChange={handleExamClassChange}
                         />
+                         {examClassError && <p className={style.errorText}>{examClassError}</p>}
                     </div>
                     <div className={`${style.input}`}>
                         <label htmlFor="examStart">Eksāmena sākums</label>
@@ -192,9 +270,9 @@ export default function AddExam() {
                             id="examStart"
                             className={`${style.inputCon}`}
                             value={examStart}
-                            onChange={(e) => setExamStart(e.target.value)}
-                            required
+                            onChange={handleExamStartChange}
                         />
+                         {examStartError && <p className={style.errorText}>{examStartError}</p>}
                     </div>
                     <div className={`${style.input}`}>
                         <label htmlFor="examDuration">Skolēna atvēlētais laiks (min)</label>
@@ -203,18 +281,18 @@ export default function AddExam() {
                             id="examDuration"
                             className={`${style.inputCon}`}
                             value={examDuration}
-                            onChange={(e) => setExamDuration(e.target.value)}
-                            required
+                            onChange={handleExamDurationChange}
                         />
+                         {examDurationError && <p className={style.errorText}>{examDurationError}</p>}
                     </div>
                 </div>
                 <textarea
                     placeholder='Lūgums skolēnus atdalīt ar komatu'
                     className={`${style.textarea}`}
                     value={studentsText}
-                    onChange={(e) => setStudentsText(e.target.value)}
-                    required
+                    onChange={handleStudentsTextChange}
                 />
+                 {studentsTextError && <p className={style.errorText}>{studentsTextError}</p>}
                 <div className={`${style.submitContainer}`}>
                     <button type='submit' className={`${style.submit}`}>Pievienot</button>
                 </div>
