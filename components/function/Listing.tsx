@@ -92,15 +92,15 @@ export default function Listing({
 
     return (
         <div className={`${style.main}`}>
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+            <div className={`${style.dropdowns}`}>
                 <div>
-                    <label htmlFor="examDropdown">Select Exam:</label>
+                    <label htmlFor="examDropdown">Eksāmens:</label>
                     <select
                         id="examDropdown"
                         value={selectedExam}
                         onChange={(e) => onExamChange(e.target.value)}
                     >
-                        <option value="">All Exams</option>
+                        <option value="">Visi eksāmeni</option>
                         {examOptions.map((exam, index) => (
                             <option key={index} value={exam}>{exam}</option>
                         ))}
@@ -108,13 +108,13 @@ export default function Listing({
                 </div>
 
                 <div>
-                    <label htmlFor="classDropdown">Select Class:</label>
+                    <label htmlFor="classDropdown">Kurss:</label>
                     <select
                         id="classDropdown"
                         value={selectedClass}
                         onChange={(e) => onClassChange(e.target.value)}
                     >
-                        <option value="">All Classes</option>
+                        <option value="">Visi kursi</option>
                         {classOptions.map((className, index) => (
                             <option key={index} value={className}>{className}</option>
                         ))}
@@ -123,8 +123,11 @@ export default function Listing({
             </div>
 
             {records.map((classRecord) => (
-                <div key={`${classRecord.classes}-${classRecord._id}`} style={{ marginBottom: '20px', border: '1px solid #ccc', padding: '10px' }}>
-                    <h2 style={{ margin: '0 0 10px 0' }}>Exam: {classRecord.examName} ({classRecord.classes})</h2>
+                <div key={`${classRecord.classes}-${classRecord._id}`} className={`${style.outerList}`} >
+                    <div>
+                        <h2 className={`${style.title}`}>Eksāmens: {classRecord.examName} ({classRecord.classes})</h2>
+                        <h2 className={`${style.title}`}>Datums: </h2>
+                    </div>
                     <ul className={`${style.ul}`}>
                         {classRecord.students.map((student: StudentRecord) => (
                             <li key={student._id} className={`${style.list}`}>
