@@ -113,11 +113,12 @@ export default function AddExam() {
     const selectExamFromDropdown = (selectedExam: ExamNameData) => {
         console.log("selectExamFromDropdown called with:", selectedExam);
 
-        setExamName(selectedExam.examName);
-        setExamDate(selectedExam.examDate);
-        setExamStart(selectedExam.examStartTime);
-        setExamDuration(selectedExam.examDuration);
-        setStudentsText('');
+        setExamName(selectedExam.examName || '');
+        setExamStart(selectedExam.examStartTime || ''); // Use examStartTime from selectedExam
+        setExamDuration(selectedExam.examDuration || ''); // Use examDuration from selectedExam
+        // Do NOT change examDate and examClass - leave them as they are
+
+        setStudentsText(''); // Optionally clear studentsText as before, or decide if it should be kept
         setIsDropdownVisible(false);
         examNameInputRef.current?.blur();
     };
@@ -250,7 +251,7 @@ export default function AddExam() {
                             value={examDate}
                             onChange={handleExamDateChange}
                         />
-                         {examDateError && <p className={style.errorText}>{examDateError}</p>}
+                        {examDateError && <p className={style.errorText}>{examDateError}</p>}
                     </div>
                     <div className={`${style.input}`}>
                         <label htmlFor="class">Kurss</label>
@@ -261,7 +262,7 @@ export default function AddExam() {
                             value={examClass}
                             onChange={handleExamClassChange}
                         />
-                         {examClassError && <p className={style.errorText}>{examClassError}</p>}
+                        {examClassError && <p className={style.errorText}>{examClassError}</p>}
                     </div>
                     <div className={`${style.input}`}>
                         <label htmlFor="examStart">Eksāmena sākums</label>
@@ -272,7 +273,7 @@ export default function AddExam() {
                             value={examStart}
                             onChange={handleExamStartChange}
                         />
-                         {examStartError && <p className={style.errorText}>{examStartError}</p>}
+                        {examStartError && <p className={style.errorText}>{examStartError}</p>}
                     </div>
                     <div className={`${style.input}`}>
                         <label htmlFor="examDuration">Skolēna atvēlētais laiks (min)</label>
@@ -283,7 +284,7 @@ export default function AddExam() {
                             value={examDuration}
                             onChange={handleExamDurationChange}
                         />
-                         {examDurationError && <p className={style.errorText}>{examDurationError}</p>}
+                        {examDurationError && <p className={style.errorText}>{examDurationError}</p>}
                     </div>
                 </div>
                 <textarea
@@ -292,7 +293,7 @@ export default function AddExam() {
                     value={studentsText}
                     onChange={handleStudentsTextChange}
                 />
-                 {studentsTextError && <p className={style.errorText}>{studentsTextError}</p>}
+                {studentsTextError && <p className={style.errorText}>{studentsTextError}</p>}
                 <div className={`${style.submitContainer}`}>
                     <button type='submit' className={`${style.submit}`}>Pievienot</button>
                 </div>

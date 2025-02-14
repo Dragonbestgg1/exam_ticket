@@ -31,7 +31,12 @@ export default function HomePage() {
     const [mongoData, setMongoData] = useState(null);
     const [loadingData, setLoadingData] = useState(true);
     const [errorLoadingData, setErrorLoadingData] = useState<Error | null>(null);
-    const [timeoutError, setTimeoutError] = useState<boolean>(false); // State to track timeout error
+    const [timeoutError, setTimeoutError] = useState<boolean>(false);
+    const [examOptions, setExamOptions] = useState<string[]>([]);
+    const [classOptions, setClassOptions] = useState<string[]>([]);
+    const [selectedExam, setSelectedExam] = useState<string>('');
+    const [selectedClass, setSelectedClass] = useState<string>('');
+
 
     const parseTimeToMs = (timeString: string): number => {
         const [hours, minutes] = timeString.split(':').map(Number);
@@ -96,32 +101,61 @@ export default function HomePage() {
         setFilterText(text);
     };
 
+    const handleExamChange = (exam: string) => {
+        setSelectedExam(exam);
+    };
+
+    const handleClassChange = (className: string) => {
+        setSelectedClass(className);
+    };
+
+
     useEffect(() => {
         const fetchData = async () => {
             setLoadingData(true);
             setErrorLoadingData(null);
-            setTimeoutError(false); // Reset timeout error state before new fetch
+            setTimeoutError(false);
+
             const controller = new AbortController();
             const timeoutId = setTimeout(() => {
-                controller.abort(); // abort request after timeout
-                setTimeoutError(true); // Set timeout error to true
-            }, 5000); // 5 seconds timeout
+                controller.abort();
+                setTimeoutError(true);
+            }, 5000);
 
             try {
-                const response = await fetch('/api/mongo-data', { signal: controller.signal });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                // Fetch Exam Options
+                const examsResponse = await fetch('/api/exam', { signal: controller.signal });
+                if (!examsResponse.ok) {
+                    throw new Error(`HTTP error! status: ${examsResponse.status} - Exams`);
                 }
-                const data = await response.json();
-                setMongoData(data);
-                console.log("HomePage - Data fetched successfully. mongoData:", data); // [LOG 1 - HomePage] - Kept in useEffect
+                const examsData = await examsResponse.json();
+                setExamOptions(examsData.examNames || []);
 
-            } catch (error: any) { // Explicitly type error as any or Error
+
+                // Fetch Class Options
+                const classesResponse = await fetch('/api/classes', { signal: controller.signal });
+                if (!classesResponse.ok) {
+                    throw new Error(`HTTP error! status: ${classesResponse.status} - Classes`);
+                }
+                const classesData = await classesResponse.json();
+                setClassOptions(classesData.classNames || []);
+
+
+                // Fetch Initial Mongo Data (Unfiltered initially, or you can filter by default exam/class if needed)
+                const mongoResponse = await fetch('/api/mongo-data', { signal: controller.signal });
+                if (!mongoResponse.ok) {
+                    throw new Error(`HTTP error! status: ${mongoResponse.status} - Mongo Data`);
+                }
+                const data = await mongoResponse.json();
+                setMongoData(data);
+
+
+            } catch (error: any) {
                 console.error("HomePage - Could not fetch data:", error);
                 if (error.name === 'AbortError') {
-                    setErrorLoadingData(new Error('Request timed out')); // Set specific timeout error message
+                    setErrorLoadingData(new Error('Request timed out'));
                 } else {
-                    setErrorLoadingData(error instanceof Error ? error : new Error('An unknown error occurred')); // Safely handle potential non-Error objects
+                    setErrorLoadingData(error instanceof Error ? error : new Error('An unknown error occurred'));
                 }
             } finally {
                 clearTimeout(timeoutId);
@@ -133,6 +167,48 @@ export default function HomePage() {
     }, []);
 
 
+    useEffect(() => {
+        const fetchFilteredData = async () => {
+            setLoadingData(true);
+            setErrorLoadingData(null);
+            setTimeoutError(false);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+                setTimeoutError(true);
+            }, 5000);
+
+            try {
+                const queryString = new URLSearchParams({
+                    exam: selectedExam,
+                    class: selectedClass,
+                }).toString();
+
+                const response = await fetch(`/api/filtered-mongo-data?${queryString}`, { signal: controller.signal });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status} - Filtered Mongo Data`);
+                }
+                const data = await response.json();
+                setMongoData(data);
+
+            } catch (error: any) {
+                console.error("HomePage - Error fetching filtered data:", error);
+                if (error.name === 'AbortError') {
+                    setErrorLoadingData(new Error('Request timed out'));
+                } else {
+                    setErrorLoadingData(error instanceof Error ? error : new Error('An unknown error occurred'));
+                }
+            } finally {
+                clearTimeout(timeoutId);
+                setLoadingData(false);
+            }
+        };
+
+        fetchFilteredData();
+
+    }, [selectedExam, selectedClass]);
+    {console.log("HomePage - mongoData before Listing:", mongoData)}
+
     return (
         <div className={`${style.main}`}>
             <Header onFilterChange={handleFilterChange} isFilterActive={isHomePage} />
@@ -143,23 +219,39 @@ export default function HomePage() {
                 extraTime={formatTime(extraTime)}
             />
             {loadingData && <div>Loading data...</div>}
-            {timeoutError && <div style={{ color: 'red' }}>Data loading timed out. Please check your connection or try again later.</div>} {/* Display timeout error message */}
-            {!timeoutError && errorLoadingData && <div>Error loading data: {errorLoadingData.message}</div>} {/* Display other errors only if not timeout */}
+            {timeoutError && <div style={{ color: 'red' }}>Data loading timed out. Please check your connection or try again later.</div>}
+            {!timeoutError && errorLoadingData && <div>Error loading data: {errorLoadingData.message}</div>}
 
 
             {!loadingData && !errorLoadingData && !timeoutError && (
                 isAuthenticated ? (
                     <>
                         <div className={`${style.content}`}>
-                            <Listing filterText={filterText} initialRecordsData={mongoData} />
-                            {/* Removed console.log from here */}
+                            <Listing
+                                filterText={filterText}
+                                initialRecordsData={mongoData}
+                                examOptions={examOptions}
+                                classOptions={classOptions}
+                                selectedExam={selectedExam}
+                                selectedClass={selectedClass}
+                                onExamChange={handleExamChange}
+                                onClassChange={handleClassChange}
+                            />
                             <AuditButtons onStart={handleStart} onEnd={handleEnd} />
                         </div>
                     </>
                 ) : (
                     <>
-                        <Listing filterText={filterText} initialRecordsData={mongoData} />
-                         {/* Removed console.log from here */}
+                        <Listing
+                            filterText={filterText}
+                            initialRecordsData={mongoData}
+                            examOptions={examOptions}
+                            classOptions={classOptions}
+                            selectedExam={selectedExam}
+                            selectedClass={selectedClass}
+                            onExamChange={handleExamChange}
+                            onClassChange={handleClassChange}
+                        />
                     </>
                 )
             )}

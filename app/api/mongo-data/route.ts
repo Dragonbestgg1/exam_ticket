@@ -1,36 +1,37 @@
-// app/api/mongo-data/route.ts
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import getMongoClientPromise from '@/app/lib/mongodb';
 
-export async function GET(req: NextRequest) {
-    console.log("App Router GET handler called for /api/mongo-data!");
-    let client;
+export async function GET() {
     try {
-        console.log("App Router - Attempting to get MongoDB client promise...");
-        client = await getMongoClientPromise();
-        console.log("App Router - Successfully obtained MongoDB client promise.");
+        const mongoClientPromise = await getMongoClientPromise();
+        const db = mongoClientPromise.db(process.env.MONGODB_DB);
+        const collection = db.collection('exams');
 
-        const db = client.db(process.env.MONGODB_DB); // **USE process.env.MONGODB_DB here!**
-        const collection = db.collection('exams'); // **KEEP yourCollectionName (ensure it's correct)**
+        const allData = await collection.find({}).toArray();
 
-        console.log("App Router - Attempting to find one document in the collection...");
-        const data = await collection.findOne({});
-        console.log("App Router - Query executed. Data retrieved:", data);
+        // Structure the data to handle nested 'classes' object
+        const structuredData: any = {};
+        allData.forEach(doc => {
+            if (doc.classes && typeof doc.classes === 'object') { // Check if 'classes' is an object
+                for (const className in doc.classes) { // Iterate through keys in 'classes' object (class names)
+                    if (doc.classes.hasOwnProperty(className)) {
+                        structuredData[className] = { // Use class name as key in structuredData
+                            ...doc.classes[className], // Spread the class data
+                            examName: doc.examName, // Add examName to each class data
+                            classes: className,      // Add the className as a direct field
+                            _id: doc._id,            // Add the document _id
+                        };
+                    }
+                }
+            } else {
+                console.warn("API - mongo-data: Document has unexpected 'classes' structure (not an object):", doc);
+            }
+        });
 
-        console.log("App Router - Sending JSON response with data:", data);
-        return NextResponse.json(data, { status: 200 });
+        return NextResponse.json(structuredData);
 
-    } catch (error: unknown) {
-        console.error("App Router - MongoDB connection or query error:", error);
-        let errorMessage = 'Failed to fetch data from MongoDB';
-        if (error instanceof Error) {
-            errorMessage = error.message;
-        }
-        return NextResponse.json({ error: 'Failed to fetch data from MongoDB', details: errorMessage }, { status: 500 });
-
-    } finally {
-        // REMOVE the client.close() call from here
-        // No need to close the client here anymore. Connection is managed by getMongoClientPromise
-        console.log("App Router - Finally block executed, connection closure is now managed externally.");
+    } catch (e) {
+        console.error("API - Error fetching data:", e);
+        return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
     }
 }

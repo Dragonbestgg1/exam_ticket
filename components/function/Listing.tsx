@@ -6,10 +6,16 @@ import { useState, useEffect, useMemo } from 'react';
 interface ListingProps {
     filterText: string;
     initialRecordsData: any;
+    examOptions: string[];
+    classOptions: string[];
+    selectedExam: string;
+    selectedClass: string;
+    onExamChange: (exam: string) => void;
+    onClassChange: (className: string) => void;
 }
 
-interface StudentRecord {
-    _id: string; // _id is now expected from the backend
+interface StudentRecord { // ENSURE _id is explicitly typed as string
+    _id: string;
     name: string;
     examDate: string;
     examStartTime: string;
@@ -17,32 +23,51 @@ interface StudentRecord {
     examEndTime: string;
 }
 
-interface ClassRecord {
+interface ClassRecord { // ENSURE _id is explicitly typed as string
     classes: string;
     students: StudentRecord[];
     examName: string;
-    _id: string; // Class _id
+    _id: string;
 }
 
-export default function Listing({ filterText, initialRecordsData }: ListingProps) {
+
+export default function Listing({
+    filterText,
+    initialRecordsData,
+    examOptions,
+    classOptions,
+    selectedExam,
+    selectedClass,
+    onExamChange,
+    onClassChange
+}: ListingProps) {
+
+    console.log("Listing - initialRecordsData prop received:", initialRecordsData); // <--- ADD THIS LOG
 
     const initialRecords: ClassRecord[] = useMemo(() => {
+        console.log("Listing - useMemo - initialRecordsData:", initialRecordsData); // <--- ADD THIS LOG
         const classRecords: ClassRecord[] = [];
-        if (initialRecordsData && initialRecordsData.classes) {
-            for (const className in initialRecordsData.classes) {
-                if (initialRecordsData.classes.hasOwnProperty(className)) {
-                    const classData = initialRecordsData.classes[className];
+        if (initialRecordsData) {
+            for (const className in initialRecordsData) {
+                if (initialRecordsData.hasOwnProperty(className)) {
+                    const classData = initialRecordsData[className];
                     if (classData && classData.students && Array.isArray(classData.students)) {
                         classRecords.push({
                             classes: className,
-                            students: classData.students, // Students should now have _id from backend
+                            students: classData.students.map((student: StudentRecord) => { // Explicitly type student as StudentRecord here to fix TS error and be clear
+                                 return { // Explicitly return to avoid potential issues
+                                    ...student,
+                                    _id: student._id || `student-no-id-${Math.random()}`
+                                };
+                            }),
                             examName: classData.examName,
-                            _id: classData._id,
+                            _id: classData._id || `class-no-id-${className}-${classData.examName}-${Math.random()}` ,
                         });
                     }
                 }
             }
         }
+        console.log("Listing - useMemo - classRecords constructed:", classRecords); // <--- ADD THIS LOG
         return classRecords;
     }, [initialRecordsData]);
 
@@ -52,23 +77,65 @@ export default function Listing({ filterText, initialRecordsData }: ListingProps
     const constantDateLabel = "Datums:";
     const constantDurationLabel = "Ilgums:";
 
-    useEffect(() => {
-        const filteredRecords = initialRecords.filter(classRecord => {
-            let classString = JSON.stringify(classRecord).toLowerCase();
-            return classString.includes(filterText.toLowerCase());
-        });
+    useEffect(() => { // useEffect for filtering - remains the same
+        let filteredRecords = initialRecords;
+
+        if (selectedExam) {
+            filteredRecords = filteredRecords.filter(record => record.examName === selectedExam);
+        }
+        if (selectedClass) {
+            filteredRecords = filteredRecords.filter(record => record.classes === selectedClass);
+        }
+
+        if (filterText) {
+            filteredRecords = filteredRecords.filter(classRecord => {
+                let classString = JSON.stringify(classRecord).toLowerCase();
+                return classString.includes(filterText.toLowerCase());
+            });
+        }
         setRecords(filteredRecords);
-    }, [filterText, initialRecords]);
+    }, [filterText, initialRecords, selectedExam, selectedClass]);
 
 
     return (
         <div className={`${style.main}`}>
-            {records.map((classRecord, classIndex) => (
+            <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+                <div>
+                    <label htmlFor="examDropdown">Select Exam:</label>
+                    <select
+                        id="examDropdown"
+                        value={selectedExam}
+                        onChange={(e) => onExamChange(e.target.value)}
+                    >
+                        <option value="">All Exams</option>
+                        {examOptions.map((exam, index) => (
+                            <option key={index} value={exam}>{exam}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label htmlFor="classDropdown">Select Class:</label>
+                    <select
+                        id="classDropdown"
+                        value={selectedClass}
+                        onChange={(e) => onClassChange(e.target.value)}
+                    >
+                        <option value="">All Classes</option>
+                        {classOptions.map((className, index) => (
+                            <option key={index} value={className}>{className}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+
+            {records.map((classRecord) => ( // Removed classIndex, rely on classRecord._id
                 <div key={classRecord._id} style={{ marginBottom: '20px', border: '1px solid #ccc', padding: '10px' }}>
                     <h2 style={{ margin: '0 0 10px 0' }}>Exam: {classRecord.examName} ({classRecord.classes})</h2>
                     <ul className={`${style.ul}`}>
-                        {classRecord.students.map((student: StudentRecord, studentIndex) => (
-                            <li key={student._id} className={`${style.list}`}> {/* Use student._id as key */}
+                        {classRecord.students.map((student: StudentRecord) => ( // Removed studentIndex, rely on student._id
+                            <li key={student._id} className={`${style.list}`}>
                                 <div className={`${style.align}`}>
                                     <div className={`${style.name}`}>
                                         <h1>{student.name}</h1>
@@ -94,4 +161,3 @@ export default function Listing({ filterText, initialRecordsData }: ListingProps
         </div>
     );
 }
-
