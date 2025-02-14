@@ -37,7 +37,6 @@ export default function HomePage() {
     const [selectedExam, setSelectedExam] = useState<string>('');
     const [selectedClass, setSelectedClass] = useState<string>('');
 
-
     const parseTimeToMs = (timeString: string): number => {
         const [hours, minutes] = timeString.split(':').map(Number);
         return (hours * 3600 + minutes * 60) * 1000;
@@ -45,7 +44,6 @@ export default function HomePage() {
 
     const calculatedStartTimeMs = parseTimeToMs(startTimeString);
     const calculatedEndTimeMs = parseTimeToMs(endTimeString);
-
 
     useEffect(() => {
         if (isRunning) {
@@ -109,7 +107,6 @@ export default function HomePage() {
         setSelectedClass(className);
     };
 
-
     useEffect(() => {
         const fetchData = async () => {
             setLoadingData(true);
@@ -123,7 +120,6 @@ export default function HomePage() {
             }, 5000);
 
             try {
-                // Fetch Exam Options
                 const examsResponse = await fetch('/api/exam', { signal: controller.signal });
                 if (!examsResponse.ok) {
                     throw new Error(`HTTP error! status: ${examsResponse.status} - Exams`);
@@ -131,8 +127,6 @@ export default function HomePage() {
                 const examsData = await examsResponse.json();
                 setExamOptions(examsData.examNames || []);
 
-
-                // Fetch Class Options
                 const classesResponse = await fetch('/api/classes', { signal: controller.signal });
                 if (!classesResponse.ok) {
                     throw new Error(`HTTP error! status: ${classesResponse.status} - Classes`);
@@ -140,8 +134,6 @@ export default function HomePage() {
                 const classesData = await classesResponse.json();
                 setClassOptions(classesData.classNames || []);
 
-
-                // Fetch Initial Mongo Data (Unfiltered initially, or you can filter by default exam/class if needed)
                 const mongoResponse = await fetch('/api/mongo-data', { signal: controller.signal });
                 if (!mongoResponse.ok) {
                     throw new Error(`HTTP error! status: ${mongoResponse.status} - Mongo Data`);
@@ -149,9 +141,7 @@ export default function HomePage() {
                 const data = await mongoResponse.json();
                 setMongoData(data);
 
-
             } catch (error: any) {
-                console.error("HomePage - Could not fetch data:", error);
                 if (error.name === 'AbortError') {
                     setErrorLoadingData(new Error('Request timed out'));
                 } else {
@@ -165,7 +155,6 @@ export default function HomePage() {
 
         fetchData();
     }, []);
-
 
     useEffect(() => {
         const fetchFilteredData = async () => {
@@ -192,7 +181,6 @@ export default function HomePage() {
                 setMongoData(data);
 
             } catch (error: any) {
-                console.error("HomePage - Error fetching filtered data:", error);
                 if (error.name === 'AbortError') {
                     setErrorLoadingData(new Error('Request timed out'));
                 } else {
@@ -207,7 +195,6 @@ export default function HomePage() {
         fetchFilteredData();
 
     }, [selectedExam, selectedClass]);
-    {console.log("HomePage - mongoData before Listing:", mongoData)}
 
     return (
         <div className={`${style.main}`}>
@@ -221,7 +208,6 @@ export default function HomePage() {
             {loadingData && <div>Loading data...</div>}
             {timeoutError && <div style={{ color: 'red' }}>Data loading timed out. Please check your connection or try again later.</div>}
             {!timeoutError && errorLoadingData && <div>Error loading data: {errorLoadingData.message}</div>}
-
 
             {!loadingData && !errorLoadingData && !timeoutError && (
                 isAuthenticated ? (

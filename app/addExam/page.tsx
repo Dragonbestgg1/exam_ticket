@@ -26,14 +26,12 @@ export default function AddExam() {
     const [filteredExamNames, setFilteredExamNames] = useState<ExamNameData[]>([]);
     const examNameInputRef = useRef<HTMLInputElement | null>(null);
 
-    // Error state variables for each field
     const [examNameError, setExamNameError] = useState<string | null>(null);
     const [examDateError, setExamDateError] = useState<string | null>(null);
     const [examClassError, setExamClassError] = useState<string | null>(null);
     const [examStartError, setExamStartError] = useState<string | null>(null);
     const [examDurationError, setExamDurationError] = useState<string | null>(null);
     const [studentsTextError, setStudentsTextError] = useState<string | null>(null);
-
 
     useEffect(() => {
         const fetchExamNames = async () => {
@@ -48,7 +46,6 @@ export default function AddExam() {
                 setExamNames(data);
                 setFilteredExamNames(data);
             } catch (error: unknown) {
-                console.error('Error fetching exam names:', error);
                 let errorMessage = 'Failed to load exam names.';
                 if (error instanceof Error) {
                     errorMessage = error.message || errorMessage;
@@ -67,7 +64,7 @@ export default function AddExam() {
     const handleExamNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const inputValue = e.target.value;
         setExamName(inputValue);
-        setExamNameError(null); // Clear error when user starts typing
+        setExamNameError(null);
 
         const filtered = examNames.filter(exam => exam.examName.toLowerCase().includes(inputValue.toLowerCase()));
         setFilteredExamNames(filtered);
@@ -76,29 +73,28 @@ export default function AddExam() {
 
     const handleExamDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setExamDate(e.target.value);
-        setExamDateError(null); // Clear error when user starts typing
+        setExamDateError(null);
     };
 
     const handleExamClassChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setExamClass(e.target.value);
-        setExamClassError(null); // Clear error when user starts typing
+        setExamClassError(null);
     };
 
     const handleExamStartChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setExamStart(e.target.value);
-        setExamStartError(null); // Clear error when user starts typing
+        setExamStartError(null);
     };
 
     const handleExamDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setExamDuration(e.target.value);
-        setExamDurationError(null); // Clear error when user starts typing
+        setExamDurationError(null);
     };
 
     const handleStudentsTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setStudentsText(e.target.value);
-        setStudentsTextError(null); // Clear error when user starts typing
+        setStudentsTextError(null);
     };
-
 
     const handleExamNameBlur = () => {
         setTimeout(() => {
@@ -111,14 +107,11 @@ export default function AddExam() {
     };
 
     const selectExamFromDropdown = (selectedExam: ExamNameData) => {
-        console.log("selectExamFromDropdown called with:", selectedExam);
-
         setExamName(selectedExam.examName || '');
-        setExamStart(selectedExam.examStartTime || ''); // Use examStartTime from selectedExam
-        setExamDuration(selectedExam.examDuration || ''); // Use examDuration from selectedExam
-        // Do NOT change examDate and examClass - leave them as they are
+        setExamStart(selectedExam.examStartTime || '');
+        setExamDuration(selectedExam.examDuration || '');
 
-        setStudentsText(''); // Optionally clear studentsText as before, or decide if it should be kept
+        setStudentsText('');
         setIsDropdownVisible(false);
         examNameInputRef.current?.blur();
     };
@@ -152,7 +145,6 @@ export default function AddExam() {
         return errors;
     };
 
-
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setExamNameError(null);
@@ -170,9 +162,8 @@ export default function AddExam() {
             setExamStartError(validationErrors.examStart || null);
             setExamDurationError(validationErrors.examDuration || null);
             setStudentsTextError(validationErrors.studentsText || null);
-            return; // Prevent form submission if validation fails
+            return;
         }
-
 
         const examData = {
             examName: examName,
@@ -193,7 +184,6 @@ export default function AddExam() {
             });
 
             if (response.ok) {
-                console.log('Exam added successfully!');
                 alert('Eksāmens veiksmīgi pievienots!');
                 setExamName('');
                 setExamDate('');
@@ -202,11 +192,9 @@ export default function AddExam() {
                 setExamDuration('');
                 setStudentsText('');
             } else {
-                console.error('Failed to add exam:', response.statusText);
                 alert('Kļūda pievienojot eksāmenu. Lūdzu, mēģiniet vēlreiz.');
             }
         } catch (error) {
-            console.error('Error submitting form:', error);
             alert('Kļūda sazinoties ar serveri. Lūdzu, mēģiniet vēlreiz.');
         }
     };

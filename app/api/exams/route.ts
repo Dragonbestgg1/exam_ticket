@@ -1,18 +1,16 @@
 import { NextResponse, NextRequest } from "next/server";
 import getMongoClientPromise from "@/app/lib/mongodb";
-import { v4 as uuidv4 } from "uuid"; // Import UUID v4 generator
+import { v4 as uuidv4 } from "uuid";
 
-// Define the StudentData interface
 interface StudentData {
-  _id: string; // Add _id to StudentData interface
+  _id: string;
   name: string;
-  examDate: any; // Consider using a more specific type for date, e.g., string or Date
-  examStartTime: any; // Consider using a more specific type for time, e.g., string
-  examDuration: any; // Consider using a more specific type, e.g., string or number
+  examDate: any;
+  examStartTime: any;
+  examDuration: any;
   examEndTime: string;
 }
 
-// Function to calculate exam end time
 function calculateExamEndTime(startTime: string, duration: string): string {
   const [startHour, startMinute] = startTime.split(":").map(Number);
   const durationMinutes = parseInt(duration, 10);
@@ -39,29 +37,27 @@ export async function POST(req: NextRequest) {
     const examClass = examDataFromRequest.examClass;
     const studentsText = examDataFromRequest.studentsText;
     const examDate = examDataFromRequest.examDate;
-    const examStartTime = examDataFromRequest.examStartTime; // Initial start time
-    const examDuration = examDataFromRequest.examDuration; // Duration for all students
+    const examStartTime = examDataFromRequest.examStartTime;
+    const examDuration = examDataFromRequest.examDuration;
 
-    let currentStartTime = examStartTime; // Track start time for sequential scheduling
+    let currentStartTime = examStartTime;
     const studentsData = studentsText
       .split(",")
       .map((student: string): StudentData => {
-        // Use StudentData interface here
         const studentData: StudentData = {
-          // Explicitly type studentData
-          _id: uuidv4(), // Generate UUID for each student HERE!
+          _id: uuidv4(),
           name: student.trim(),
-          examDate: examDate, // Add examDate to student
-          examStartTime: currentStartTime, // Add examStartTime to student
-          examDuration: examDuration, // Add examDuration to student
-          examEndTime: "", // Initialize examEndTime to empty string, it will be calculated next
+          examDate: examDate,
+          examStartTime: currentStartTime,
+          examDuration: examDuration,
+          examEndTime: "",
         };
         const examEndTime = calculateExamEndTime(
           currentStartTime,
           examDuration
         );
-        studentData.examEndTime = examEndTime; // Calculate and add examEndTime
-        currentStartTime = examEndTime; // Update start time for next student
+        studentData.examEndTime = examEndTime;
+        currentStartTime = examEndTime;
         return studentData;
       });
 
@@ -71,8 +67,8 @@ export async function POST(req: NextRequest) {
 
     const examDocument = {
       examName: examName,
-      examstart: examStartTime, // Add examstart at top level
-      duration: examDuration, // Add duration at top level
+      examstart: examStartTime,
+      duration: examDuration,
     };
 
     const existingExam = await examsCollection.findOne({ examName: examName });
@@ -98,7 +94,7 @@ export async function POST(req: NextRequest) {
             examstart: examStartTime,
             duration: examDuration,
           },
-        } // Also update examstart and duration if exam is updated
+        }
       );
 
       if (result.modifiedCount > 0) {
@@ -132,7 +128,6 @@ export async function POST(req: NextRequest) {
       );
     }
   } catch (error: unknown) {
-    console.error("Error adding/updating exam:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
       errorMessage = error.message;

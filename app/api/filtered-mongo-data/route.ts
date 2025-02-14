@@ -13,38 +13,33 @@ export async function GET(request: NextRequest) {
 
         let query: any = {};
         if (examFilter) {
-            query.examName = examFilter; // Exam filter still works at top level
+            query.examName = examFilter;
         }
         if (classFilter) {
-            query[`classes.${classFilter}`] = { $exists: true }; // Filter by KEY in 'classes' object
+            query[`classes.${classFilter}`] = { $exists: true };
         }
 
         const filteredData = await collection.find(query).toArray();
 
-        // Structure the data to handle nested 'classes' object (same as mongo-data route)
         const structuredData: any = {};
         filteredData.forEach(doc => {
-             if (doc.classes && typeof doc.classes === 'object') { // Check if 'classes' is an object
-                for (const className in doc.classes) { // Iterate through keys in 'classes' object (class names)
+             if (doc.classes && typeof doc.classes === 'object') {
+                for (const className in doc.classes) {
                     if (doc.classes.hasOwnProperty(className)) {
-                        structuredData[className] = { // Use class name as key in structuredData
-                            ...doc.classes[className], // Spread the class data
-                            examName: doc.examName, // Add examName to each class data
-                            classes: className,      // Add the className as a direct field
-                            _id: doc._id,            // Add the document _id
+                        structuredData[className] = {
+                            ...doc.classes[className],
+                            examName: doc.examName,
+                            classes: className,
+                            _id: doc._id,
                         };
                     }
                 }
-            } else {
-                console.warn("API - filtered-mongo-data: Document has unexpected 'classes' structure (not an object):", doc);
             }
         });
-
 
         return NextResponse.json(structuredData);
 
     } catch (e) {
-        console.error("API - Error fetching filtered data:", e);
         return NextResponse.json({ error: "Failed to fetch filtered data" }, { status: 500 });
     }
 }

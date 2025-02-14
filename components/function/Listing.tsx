@@ -14,7 +14,7 @@ interface ListingProps {
     onClassChange: (className: string) => void;
 }
 
-interface StudentRecord { // ENSURE _id is explicitly typed as string
+interface StudentRecord {
     _id: string;
     name: string;
     examDate: string;
@@ -23,13 +23,12 @@ interface StudentRecord { // ENSURE _id is explicitly typed as string
     examEndTime: string;
 }
 
-interface ClassRecord { // ENSURE _id is explicitly typed as string
+interface ClassRecord {
     classes: string;
     students: StudentRecord[];
     examName: string;
     _id: string;
 }
-
 
 export default function Listing({
     filterText,
@@ -42,10 +41,7 @@ export default function Listing({
     onClassChange
 }: ListingProps) {
 
-    console.log("Listing - initialRecordsData prop received:", initialRecordsData); // <--- ADD THIS LOG
-
     const initialRecords: ClassRecord[] = useMemo(() => {
-        console.log("Listing - useMemo - initialRecordsData:", initialRecordsData); // <--- ADD THIS LOG
         const classRecords: ClassRecord[] = [];
         if (initialRecordsData) {
             for (const className in initialRecordsData) {
@@ -54,8 +50,8 @@ export default function Listing({
                     if (classData && classData.students && Array.isArray(classData.students)) {
                         classRecords.push({
                             classes: className,
-                            students: classData.students.map((student: StudentRecord) => { // Explicitly type student as StudentRecord here to fix TS error and be clear
-                                 return { // Explicitly return to avoid potential issues
+                            students: classData.students.map((student: StudentRecord) => {
+                                 return {
                                     ...student,
                                     _id: student._id || `student-no-id-${Math.random()}`
                                 };
@@ -67,17 +63,15 @@ export default function Listing({
                 }
             }
         }
-        console.log("Listing - useMemo - classRecords constructed:", classRecords); // <--- ADD THIS LOG
         return classRecords;
     }, [initialRecordsData]);
-
 
     const [records, setRecords] = useState<ClassRecord[]>(initialRecords);
     const constantTimeLabel = "Sākas:";
     const constantDateLabel = "Datums:";
     const constantDurationLabel = "Ilgums:";
 
-    useEffect(() => { // useEffect for filtering - remains the same
+    useEffect(() => {
         let filteredRecords = initialRecords;
 
         if (selectedExam) {
@@ -95,7 +89,6 @@ export default function Listing({
         }
         setRecords(filteredRecords);
     }, [filterText, initialRecords, selectedExam, selectedClass]);
-
 
     return (
         <div className={`${style.main}`}>
@@ -129,12 +122,11 @@ export default function Listing({
                 </div>
             </div>
 
-
-            {records.map((classRecord) => ( // Removed classIndex, rely on classRecord._id
+            {records.map((classRecord) => (
                 <div key={classRecord._id} style={{ marginBottom: '20px', border: '1px solid #ccc', padding: '10px' }}>
                     <h2 style={{ margin: '0 0 10px 0' }}>Exam: {classRecord.examName} ({classRecord.classes})</h2>
                     <ul className={`${style.ul}`}>
-                        {classRecord.students.map((student: StudentRecord) => ( // Removed studentIndex, rely on student._id
+                        {classRecord.students.map((student: StudentRecord) => (
                             <li key={student._id} className={`${style.list}`}>
                                 <div className={`${style.align}`}>
                                     <div className={`${style.name}`}>
