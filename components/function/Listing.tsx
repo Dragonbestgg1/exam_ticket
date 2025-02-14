@@ -51,13 +51,13 @@ export default function Listing({
                         classRecords.push({
                             classes: className,
                             students: classData.students.map((student: StudentRecord) => {
-                                 return {
+                                return {
                                     ...student,
                                     _id: student._id || `student-no-id-${Math.random()}`
                                 };
                             }),
                             examName: classData.examName,
-                            _id: classData._id || `class-no-id-${className}-${classData.examName}-${Math.random()}` ,
+                            _id: classData._id || `class-no-id-${className}-${classData.examName}-${Math.random()}`,
                         });
                     }
                 }
@@ -123,7 +123,7 @@ export default function Listing({
             </div>
 
             {records.map((classRecord) => (
-                <div key={classRecord._id} style={{ marginBottom: '20px', border: '1px solid #ccc', padding: '10px' }}>
+                <div key={`${classRecord.classes}-${classRecord._id}`} style={{ marginBottom: '20px', border: '1px solid #ccc', padding: '10px' }}>
                     <h2 style={{ margin: '0 0 10px 0' }}>Exam: {classRecord.examName} ({classRecord.classes})</h2>
                     <ul className={`${style.ul}`}>
                         {classRecord.students.map((student: StudentRecord) => (
