@@ -4,11 +4,16 @@ import style from '@/styles/functions/audit.module.css'
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { useRef, useState } from 'react';
 
-export default function AuditButtons() {
+interface AuditButtonsProps {
+    onStart: () => void;
+    onEnd: () => void;
+}
+
+const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd }) => {
     const leftArrowWrapperRef = useRef<HTMLSpanElement | null>(null);
     const rightArrowWrapperRef = useRef<HTMLSpanElement | null>(null);
-    const [isStartActive, setIsStartActive] = useState(false);
-    const [isEndActive, setIsEndActive] = useState(false);
+    const [isStartActive, setIsStartActive] = useState<boolean>(false);
+    const [isEndActive, setIsEndActive] = useState<boolean>(false);
 
     const handleLeftClick = () => {
         const arrowIcon = leftArrowWrapperRef.current?.querySelector('svg');
@@ -37,11 +42,13 @@ export default function AuditButtons() {
     const handleStartClick = () => {
         setIsStartActive(!isStartActive);
         setIsEndActive(false);
+        onStart();
     };
 
     const handleEndClick = () => {
         setIsEndActive(!isEndActive);
         setIsStartActive(false);
+        onEnd();
     };
 
     return (
@@ -65,7 +72,7 @@ export default function AuditButtons() {
                     <span ref={leftArrowWrapperRef} style={{ display: 'inline-flex' }}>
                         <FaArrowLeft style={{ transition: 'transform 0.3s ease-out' }} />
                     </span>
-                     Iepriekšējais
+                    Iepriekšējais
                 </button>
                 <button className={`${style.selectorButton}`} onClick={handleRightClick}>
                     Nākamais
@@ -77,3 +84,5 @@ export default function AuditButtons() {
         </div>
     )
 }
+
+export default AuditButtons;

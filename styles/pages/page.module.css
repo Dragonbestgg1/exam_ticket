@@ -7,3 +7,13 @@
     justify-content: flex-start;
     gap: 20;
 }
+
+.content{
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 20px;
+    width: 80vw;
+    height: 80vh;
+}

@@ -9,11 +9,17 @@ import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { PiExam } from "react-icons/pi";
 
-export default function Header() {
+interface HeaderProps {
+    onFilterChange?: (filterText: string) => void;
+    isFilterActive?: boolean;
+}
+
+export default function Header({ onFilterChange, isFilterActive }: HeaderProps) {
     const [time, setTime] = useState('');
     const [colonVisible, setColonVisible] = useState(true);
-    const [isFilterActive, setIsFilterActive] = useState(false);
+    const [filterInputActive, setFilterInputActive] = useState(false);
     const { data: session } = useSession();
+    const [filterInput, setFilterInput] = useState('');
 
     useEffect(() => {
         const updateTime = () => {
@@ -38,11 +44,19 @@ export default function Header() {
     const [hours, minutes] = time.split(':') || ['', ''];
 
     const handleFilterClick = () => {
-        setIsFilterActive(!isFilterActive);
+        setFilterInputActive(!filterInputActive);
     };
 
     const handleLogout = async () => {
         await signOut({ callbackUrl: '/' });
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setFilterInput(value);
+        if (onFilterChange) {
+            onFilterChange(value);
+        }
     };
 
     return (
@@ -67,15 +81,20 @@ export default function Header() {
                 <span style={{ visibility: colonVisible ? 'visible' : 'hidden' }}>:</span>
                 <span>{minutes}</span>
             </h1>
-            <div className={`${style.search}`}>
-                <button className={`${style.filter}`} onClick={handleFilterClick}>
-                    <LuFilter />
-                </button>
-                <input
-                    type="text"
-                    className={`${style.src} ${isFilterActive ? style.active : ''}`}
-                />
-            </div>
+            {isFilterActive && (
+                <div className={`${style.search}`}>
+                    <button className={`${style.filter} ${filterInputActive ? style.active : ''}`} onClick={handleFilterClick}>
+                        <LuFilter />
+                    </button>
+                    <input
+                        type="text"
+                        className={`${style.src} ${filterInputActive ? style.active : ''}`}
+                        placeholder="Search name..."
+                        value={filterInput}
+                        onChange={handleInputChange}
+                    />
+                </div>
+            )}
         </header>
     );
 }

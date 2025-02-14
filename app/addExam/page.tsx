@@ -10,30 +10,26 @@ export default function AddExam() {
             <form className={`${style.form}`}>
                 <div className={`${style.mainInfo}`}>
                     <div className={`${style.input}`}>
-                        <label htmlFor="examName">Exam Name</label>
-                        <input type="text" id="examName" />
+                        <label htmlFor="examName">Eksāmena nosaukums</label>
+                        <input type="text" id="examName" className={`${style.inputCon}`} />
                     </div>
                     <div className={`${style.input}`}>
-                        <label htmlFor="examDate">Exam Date</label>
-                        <input type="date" id="examDate" />
+                        <label htmlFor="examDate">Eksāmena datums</label>
+                        <input type="date" id="examDate" className={`${style.inputCon}`} />
                     </div>
                     <div className={`${style.input}`}>
-                        <label htmlFor="examTime">Exam Time</label>
-                        <input type="time" id="examTime" />
+                        <label htmlFor="class">Kurss</label>
+                        <input type="text" id="class" className={`${style.inputCon}`} />
                     </div>
                     <div className={`${style.input}`}>
-                        <label htmlFor="examDuration">Exam Duration</label>
-                        <input type="number" id="examDuration" />
-                    </div>
-                    <div className={`${style.input}`}>
-                        <label htmlFor="examType">Exam Type</label>
-                        <select id="examType">
-                            <option value="1">Online</option>
-                            <option value="2">Offline</option>
-                        </select>
+                        <label htmlFor="examDuration">Skolēna atvēlētais laiks</label>
+                        <input type="number" id="examDuration" className={`${style.inputCon}`} />
                     </div>
                 </div>
                 <textarea placeholder='Lūgums skolēnus atdalīt ar komatu' className={`${style.textarea}`} />
+                <div className={`${style.submitContainer}`}>
+                    <button type='submit' className={`${style.submit}`}>Pievienot</button>
+                </div>
             </form>
         </div>
     )

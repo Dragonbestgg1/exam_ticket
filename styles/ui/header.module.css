@@ -55,6 +55,10 @@
     color: white;
     text-transform: uppercase;
     letter-spacing: 5px;
+
+    position: absolute;
+    left: 50%;         
+    transform: translateX(-50%);
 }
 
 /* #endregion */

@@ -28,20 +28,26 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: center;
-    gap: 50px;
+    justify-content: space-evenly;
     padding: 20px;
     border-bottom: 1px solid white;
-    flex-wrap: wrap;
 }
 
 .input{
-    
+    display: flex;
+    width: 180px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.inputCon{
+    padding: 5px;
 }
 
 .textarea{
     width: 100%;
-    height: 50vh;
+    height: 40vh;
     resize: none;
     border: none;
     border-radius: 5px;
@@ -49,4 +55,29 @@
     outline: none;
     font-size: 18px;
     line-height: 24px;
+}
+
+.submitContainer{
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    border-top: 1px solid white;
+    padding-top: 20px;
+}
+
+.submit{
+    width: 120px;
+    height: 40px;
+    background-color: #1E90FF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 24px;
+}
+
+.submit:hover{
+    background-color: #4169E1;
 }
