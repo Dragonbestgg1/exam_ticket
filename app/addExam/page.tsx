@@ -22,6 +22,10 @@ export default function AddExam() {
                         <input type="text" id="class" className={`${style.inputCon}`} />
                     </div>
                     <div className={`${style.input}`}>
+                        <label htmlFor="examStart">Eksāmena sākums</label>
+                        <input type="time" id="examStart" className={`${style.inputCon}`} />
+                    </div>
+                    <div className={`${style.input}`}>
                         <label htmlFor="examDuration">Skolēna atvēlētais laiks</label>
                         <input type="number" id="examDuration" className={`${style.inputCon}`} />
                     </div>
