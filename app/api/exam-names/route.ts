@@ -1,7 +1,7 @@
-import { NextResponse, NextRequest } from 'next/server';
-import getMongoClientPromise from '@/app/lib/mongodb'; // Adjust path if necessary
+import { NextResponse } from 'next/server';
+import getMongoClientPromise from '@/app/lib/mongodb';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     try {
         const client = await getMongoClientPromise();
         if (!process.env.MONGODB_DB) {
@@ -10,18 +10,16 @@ export async function GET(req: NextRequest) {
         const db = client.db(process.env.MONGODB_DB);
         const examsCollection = db.collection('exams');
 
-        // Fetch exam names and other relevant data (excluding classes and students for now)
         const examsData = await examsCollection.find({}, { projection: { _id: 1, examName: 1, examDate: 1, examStartTime: 1, examDuration: 1 } }).toArray();
 
-        // Transform _id to string for serialization
         const transformedExamsData = examsData.map(exam => ({
             ...exam,
-            _id: exam._id.toString(), // Convert ObjectId to string
+            _id: exam._id.toString(),
         }));
 
         return NextResponse.json(transformedExamsData, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching exam names:', error);
         let errorMessage = 'Failed to fetch exam names';
         if (error instanceof Error) {

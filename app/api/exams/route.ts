@@ -79,17 +79,17 @@ export async function POST(req: NextRequest) {
         { status: 200 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error adding/updating exam:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
-      errorMessage = error.message;
+        errorMessage = error.message;
     } else {
-      errorMessage = String(error);
+        errorMessage = String(error);
     }
     return NextResponse.json(
-      { message: "Failed to add/update exam", error: errorMessage },
-      { status: 500 }
+        { message: "Failed to add/update exam", error: errorMessage },
+        { status: 500 }
     );
-  }
+}
 }

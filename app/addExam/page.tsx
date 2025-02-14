@@ -38,9 +38,13 @@ export default function AddExam() {
                 const data: ExamNameData[] = await response.json();
                 setExamNames(data);
                 setFilteredExamNames(data);
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error('Error fetching exam names:', error);
-                setErrorLoadingExams(error.message || 'Failed to load exam names.');
+                let errorMessage = 'Failed to load exam names.';
+                if (error instanceof Error) {
+                    errorMessage = error.message || errorMessage;
+                }
+                setErrorLoadingExams(errorMessage);
                 setExamNames([]);
                 setFilteredExamNames([]);
             } finally {
@@ -93,10 +97,10 @@ export default function AddExam() {
 
         const examData = {
             examName: examName,
-            examDate: examDate, // Still send examDate
+            examDate: examDate,
             examClass: examClass,
-            examStartTime: examStart, // Still send examStartTime
-            examDuration: examDuration, // Still send examDuration
+            examStartTime: examStart,
+            examDuration: examDuration,
             studentsText: studentsText
         };
 
