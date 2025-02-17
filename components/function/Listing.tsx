@@ -81,12 +81,23 @@ export default function Listing({
             filteredRecords = filteredRecords.filter(record => record.classes === selectedClass);
         }
 
-        if (filterText) {
-            filteredRecords = filteredRecords.filter(classRecord => {
-                let classString = JSON.stringify(classRecord).toLowerCase();
-                return classString.includes(filterText.toLowerCase());
-            });
+        if (filterText) {  // Student name filter
+            filteredRecords = filteredRecords.map(classRecord => {
+                const filteredStudents = classRecord.students.filter(student => {
+                    const studentName = student.name.toLowerCase(); // Filter by name only
+                    return studentName.includes(filterText.toLowerCase());
+                });
+                if (filteredStudents.length > 0) {
+                  return {
+                    ...classRecord,
+                    students: filteredStudents
+                  }
+                } else {
+                  return null;
+                }
+            }).filter(record => record !== null);
         }
+
         setRecords(filteredRecords);
     }, [filterText, initialRecords, selectedExam, selectedClass]);
 
