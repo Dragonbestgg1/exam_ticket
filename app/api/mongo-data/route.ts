@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { MongoClient, Db, Collection, ObjectId } from 'mongodb'; // Import ObjectId
+import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
 import getMongoClientPromise from '@/app/lib/mongodb';
 
 interface Student {
@@ -13,11 +13,10 @@ interface Student {
 
 interface ClassData {
   students: Student[];
-  // Add other properties of the class if there are any, e.g., teacher, subject
 }
 
 interface ExamDocument {
-  _id: ObjectId; // Use ObjectId type
+  _id: ObjectId;
   examName: string;
   examstart: string;
   duration: string;
@@ -29,10 +28,9 @@ interface StructuredData {
     students: Student[];
     examName: string;
     classes: string;
-    _id: ObjectId; // Use ObjectId type
+    _id: ObjectId;
     examstart: string;
     duration: string;
-
   };
 }
 
@@ -67,7 +65,6 @@ export async function GET() {
     return NextResponse.json(structuredData);
 
   } catch (error) {
-    console.error("Error fetching data:", error);
     return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
   }
 }

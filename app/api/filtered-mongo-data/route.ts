@@ -3,7 +3,6 @@ import { MongoClient, Db, Collection } from 'mongodb';
 import getMongoClientPromise from '@/app/lib/mongodb';
 import { StructuredData, ExamDocument } from '@/app/types';
 
-
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -32,8 +31,8 @@ export async function GET(request: NextRequest) {
         for (const className in doc.classes) {
           if (doc.classes.hasOwnProperty(className)) {
             structuredData[className] = {
-              ...doc.classes[className], // Spread all class details (including students now if present)
-              students: doc.classes[className].students || [], // Ensure students array is included, default to empty array if missing (for safety)
+              ...doc.classes[className],
+              students: doc.classes[className].students || [],
               examName: doc.examName,
               className: className,
               _id: doc._id.toString(),
@@ -46,7 +45,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(structuredData);
 
   } catch (e) {
-    console.error("Error fetching data:", e);
     return NextResponse.json({ error: "Failed to fetch filtered data" }, { status: 500 });
   }
 }

@@ -8,15 +8,13 @@ import style from '@/styles/pages/page.module.css';
 import { useSession } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { StructuredData } from '@/app/types'; // <-- Import interfaces from types.ts
-
+import { StructuredData } from '@/app/types';
 
 const useUserAuthentication = () => {
     const session = useSession();
     const isAuthenticated = !!session?.data;
     return isAuthenticated;
 };
-
 
 export default function HomePage() {
     const isAuthenticated = useUserAuthentication();
@@ -31,7 +29,6 @@ export default function HomePage() {
     const [elapsedTime, setElapsedTime] = useState<number>(0);
     const [extraTime, setExtraTime] = useState<number>(0);
     const timerInterval = useRef<NodeJS.Timeout | null>(null);
-    // Define mongoData state with the StructuredData type
     const [mongoData, setMongoData] = useState<StructuredData | null>(null);
     const [loadingData, setLoadingData] = useState(true);
     const [errorLoadingData, setErrorLoadingData] = useState<Error | null>(null);
@@ -142,10 +139,10 @@ export default function HomePage() {
                 if (!mongoResponse.ok) {
                     throw new Error(`HTTP error! status: ${mongoResponse.status} - Mongo Data`);
                 }
-                const data: StructuredData = await mongoResponse.json(); // Line ~147 - No more "any" error
+                const data: StructuredData = await mongoResponse.json();
                 setMongoData(data);
 
-            } catch (error: unknown) { // Changed 'Error' to 'unknown' - Line ~186
+            } catch (error: unknown) {
                 if (error instanceof Error) {
                     setErrorLoadingData(new Error('Request timed out'));
                 } else {
@@ -181,10 +178,10 @@ export default function HomePage() {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status} - Filtered Mongo Data`);
                 }
-                const data: StructuredData = await response.json(); // Line ~245 - No more "any" error
+                const data: StructuredData = await response.json();
                 setMongoData(data);
 
-            } catch (error: unknown) { // Changed 'Error' to 'unknown' - Line ~254
+            } catch (error: unknown) {
                 if (error instanceof Error) {
                     setErrorLoadingData(new Error('Request timed out'));
                 } else {
