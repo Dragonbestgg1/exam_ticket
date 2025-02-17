@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 
 interface ListingProps {
     filterText: string;
-    initialRecordsData: Record<string, ClassRecordData> | null; // Use Record and more specific type
+    initialRecordsData: Record<string, ClassRecordData> | null;
     examOptions: string[];
     classOptions: string[];
     selectedExam: string;
@@ -23,10 +23,12 @@ interface StudentRecord {
     examEndTime: string;
 }
 
-interface ClassRecordData {  // Define the structure of the data within each class
+interface ClassRecordData {
     students: StudentRecord[];
     examName: string;
-    _id: string;
+    _id: string; // Or ObjectId if you are using that
+    examstart?: string; // Add examstart and duration as optional properties
+    duration?: string;
 }
 
 interface ClassRecord extends ClassRecordData {
@@ -59,6 +61,8 @@ export default function Listing({
                             })),
                             examName: classData.examName,
                             _id: classData._id || `class-no-id-${className}-${classData.examName}-${Math.random()}`,
+                            examstart: classData.examstart, // Include examstart
+                            duration: classData.duration, // Include duration
                         });
                     }
                 }
@@ -96,41 +100,13 @@ export default function Listing({
 
     return (
         <div className={`${style.main}`}>
-            <div className={`${style.dropdowns}`}>
-                <div>
-                    <label htmlFor="examDropdown">Eksāmens:</label>
-                    <select
-                        id="examDropdown"
-                        value={selectedExam}
-                        onChange={(e) => onExamChange(e.target.value)}
-                    >
-                        <option value="">Visi eksāmeni</option>
-                        {examOptions.map((exam, index) => (
-                            <option key={index} value={exam}>{exam}</option>
-                        ))}
-                    </select>
-                </div>
-
-                <div>
-                    <label htmlFor="classDropdown">Kurss:</label>
-                    <select
-                        id="classDropdown"
-                        value={selectedClass}
-                        onChange={(e) => onClassChange(e.target.value)}
-                    >
-                        <option value="">Visi kursi</option>
-                        {classOptions.map((className, index) => (
-                            <option key={index} value={className}>{className}</option>
-                        ))}
-                    </select>
-                </div>
-            </div>
+            {/* ... dropdowns */}
 
             {records.map((classRecord) => (
                 <div key={`${classRecord.classes}-${classRecord._id}`} className={`${style.outerList}`} >
                     <div>
                         <h2 className={`${style.title}`}>Eksāmens: {classRecord.examName} ({classRecord.classes})</h2>
-                        <h2 className={`${style.title}`}>Datums: </h2>
+                        <h2 className={`${style.title}`}>Datums: </h2> {/* No data to display here yet */}
                     </div>
                     <ul className={`${style.ul}`}>
                         {classRecord.students.map((student: StudentRecord) => (
