@@ -21,6 +21,7 @@
 @media (max-width: 768){
     .content {
         flex-direction: column-reverse;
+        width: 90%;
     }
     .main{
         height: unset;

@@ -124,3 +124,9 @@
         padding-bottom: 10px;
     }
 }
+
+@media screen and (min-width: 768px) and (max-width:1024){
+    .selector{
+        gap : 70px;
+    }
+}

@@ -110,8 +110,10 @@
 
 @media screen and (max-width: 768px) {
     .main {
-        width: 100vw;
+        width: 90vw;
         height: 100vh;
+        padding: 0px;
+        overflow-x: hidden;
     }
 
     .ul {
@@ -119,6 +121,18 @@
     }
 
     .list {
-        width: 90vw;
+        width: 80%;
+        list-style-type: none;
     }
+    .align{
+        flex-direction: column;
+    }
+}
+
+@media screen and (min-width: 768px) and (max-width:1024){
+    .align{
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 30px;
+    }   
 }

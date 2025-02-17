@@ -43,7 +43,7 @@
     font-size: 24px;
     color: white;
     font-weight: bolder;
-    text-shadow: 1px 1px 2px black; /* Optional: Add text shadow for screen effect */
+    text-shadow: 1px 1px 2px black;
 }
 
 .timers {
@@ -77,26 +77,28 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-around;
-    gap: 20px;
+    justify-content: flex-start;
+    gap: 10vw;
     padding: 10px;
+    padding-left: 30px;
 }
 
 .timerTitle {
     font-size: 24px;
     color: white;
     font-weight: bolder;
-    text-shadow: 1px 1px 2px black; /* Optional: Add text shadow for screen effect */
+    text-shadow: 1px 1px 2px black;
 }
 
 .time {
     font-size: 24px;
     color: white;
     font-weight: bolder;
-    text-shadow: 1px 1px 2px black; /* Optional: Add text shadow for screen effect */
+    text-shadow: 1px 1px 2px black;
 }
 
-.runtimer {
+.runtimer,
+.runtimer1 {
     display: flex;
     font-size: 18px;
     color: white;
@@ -105,7 +107,12 @@
     justify-content: center;
     align-items: center;
     gap: 10px;
-    text-shadow: 1px 1px 2px black; /* Optional: Add text shadow for screen effect */
+    text-shadow: 1px 1px 2px black;
+}
+
+.runtimer1{
+    display: none;
+    color: crimson;
 }
 
 /* #endregion */
@@ -137,5 +144,13 @@
         gap: 10px;
         width: 100%;
         flex-direction: column;
+    }
+}
+
+@media screen and (min-width: 768px) and (max-width:1024){
+    .timer{
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
     }
 }

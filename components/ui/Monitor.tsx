@@ -1,6 +1,7 @@
 "use client"
 
 import style from '@/styles/ui/monitor.module.css'
+import { useState, useEffect } from 'react';
 
 interface MonitorProps {
     startTime: string;
@@ -10,6 +11,16 @@ interface MonitorProps {
 }
 
 const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extraTime }) => {
+    const [extraTimeDisplay, setExtraTimeDisplay] = useState('none');
+
+    useEffect(() => {
+        if (extraTime && extraTime !== "00:00:00" && !extraTime.startsWith("-")) {
+            setExtraTimeDisplay('flex');
+        } else {
+            setExtraTimeDisplay('none');
+        }
+    }, [extraTime]);
+
     return (
         <div className={`${style.main}`}>
             <div className={`${style.monitor}`}>
@@ -32,7 +43,7 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
                         <h1>Aizņemtais laiks: </h1>
                         <h1>{elapsedTime || "00:00:00"}</h1>
                     </div>
-                    <div className={`${style.runtimer}`}>
+                    <div className={`${style.runtimer1}`} style={{ display: extraTimeDisplay }}>
                         <h1>Papildus laiks: </h1>
                         <h1>+ {extraTime || "00:00:00"}</h1>
                     </div>
