@@ -13,7 +13,7 @@ export async function GET() {
         allClasses.forEach(doc => {
             if (doc.classes && typeof doc.classes === 'object') {
                 for (const className in doc.classes) {
-                    if (doc.classes.hasOwnProperty(className)) {
+                    if (Object.prototype.hasOwnProperty.call(doc.classes, className)) {
                         distinctClassNames.add(className);
                     }
                 }
@@ -22,7 +22,8 @@ export async function GET() {
 
         return NextResponse.json({ classNames: Array.from(distinctClassNames) });
 
-    } catch (e) {
+    } catch (error) {
+        console.error("Error fetching class names:", error);
         return NextResponse.json({ error: "Failed to fetch class names" }, { status: 500 });
     }
 }

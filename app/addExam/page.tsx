@@ -117,7 +117,7 @@ export default function AddExam() {
     };
 
     const validateForm = () => {
-        let errors: { [key: string]: string | null } = {};
+        const errors: { [key: string]: string | null } = {}; // Use const
 
         if (!examName.trim()) {
             errors.examName = 'Eksāmena nosaukums ir obligāts!';
@@ -195,7 +195,9 @@ export default function AddExam() {
                 alert('Kļūda pievienojot eksāmenu. Lūdzu, mēģiniet vēlreiz.');
             }
         } catch (error) {
+            console.error("Error submitting exam:", error);
             alert('Kļūda sazinoties ar serveri. Lūdzu, mēģiniet vēlreiz.');
+
         }
     };
 

@@ -27,7 +27,8 @@ export async function GET() {
 
         return NextResponse.json(structuredData);
 
-    } catch (e) {
-        return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
+    } catch (error) { // Rename 'e' to 'error' and use it
+        console.error("Error fetching data:", error); // Log the error
+      return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
     }
 }

@@ -11,7 +11,8 @@ export async function GET() {
 
         return NextResponse.json({ examNames: distinctExamNames });
 
-    } catch (e) {
+    } catch (error) {
+        console.error("Error fetching exam names:", error);
         return NextResponse.json({ error: "Failed to fetch exam names" }, { status: 500 });
     }
 }

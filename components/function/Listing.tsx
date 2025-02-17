@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 
 interface ListingProps {
     filterText: string;
-    initialRecordsData: any;
+    initialRecordsData: Record<string, ClassRecordData> | null; // Use Record and more specific type
     examOptions: string[];
     classOptions: string[];
     selectedExam: string;
@@ -23,11 +23,14 @@ interface StudentRecord {
     examEndTime: string;
 }
 
-interface ClassRecord {
-    classes: string;
+interface ClassRecordData {  // Define the structure of the data within each class
     students: StudentRecord[];
     examName: string;
     _id: string;
+}
+
+interface ClassRecord extends ClassRecordData {
+    classes: string;
 }
 
 export default function Listing({
@@ -45,17 +48,15 @@ export default function Listing({
         const classRecords: ClassRecord[] = [];
         if (initialRecordsData) {
             for (const className in initialRecordsData) {
-                if (initialRecordsData.hasOwnProperty(className)) {
+                if (Object.prototype.hasOwnProperty.call(initialRecordsData, className)) {
                     const classData = initialRecordsData[className];
                     if (classData && classData.students && Array.isArray(classData.students)) {
                         classRecords.push({
                             classes: className,
-                            students: classData.students.map((student: StudentRecord) => {
-                                return {
-                                    ...student,
-                                    _id: student._id || `student-no-id-${Math.random()}`
-                                };
-                            }),
+                            students: classData.students.map((student) => ({
+                                ...student,
+                                _id: student._id || `student-no-id-${Math.random()}`
+                            })),
                             examName: classData.examName,
                             _id: classData._id || `class-no-id-${className}-${classData.examName}-${Math.random()}`,
                         });
@@ -81,20 +82,12 @@ export default function Listing({
             filteredRecords = filteredRecords.filter(record => record.classes === selectedClass);
         }
 
-        if (filterText) {  // Student name filter
+        if (filterText) {
             filteredRecords = filteredRecords.map(classRecord => {
-                const filteredStudents = classRecord.students.filter(student => {
-                    const studentName = student.name.toLowerCase(); // Filter by name only
-                    return studentName.includes(filterText.toLowerCase());
-                });
-                if (filteredStudents.length > 0) {
-                  return {
-                    ...classRecord,
-                    students: filteredStudents
-                  }
-                } else {
-                  return null;
-                }
+                const filteredStudents = classRecord.students.filter(student =>
+                    student.name.toLowerCase().includes(filterText.toLowerCase())
+                );
+                return filteredStudents.length > 0 ? { ...classRecord, students: filteredStudents } : null;
             }).filter(record => record !== null);
         }
 
