@@ -101,9 +101,7 @@ export default function Listing({
 
             {records.map((classRecord) => (
                 <div key={`${classRecord.classes}-${classRecord._id}`} className={`${style.outerList}`} >
-                    <div>
-                        <h2 className={`${style.title}`}>{classRecord.examName} ({classRecord.classes})</h2>
-                    </div>
+                    <h2 className={`${style.title}`}>{classRecord.examName} ({classRecord.classes})</h2>
                     <ul className={`${style.ul}`}>
                         {classRecord.students.map((student: StudentRecord) => (
                             <li key={student._id} className={`${style.list}`}>

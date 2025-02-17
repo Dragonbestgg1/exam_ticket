@@ -104,3 +104,13 @@
 }
 
 /* #endregion */
+
+@media screen and (max-width: 768px) {
+    .nav {
+        display: none;
+    }
+
+    .search {
+        display: none;
+    }
+}

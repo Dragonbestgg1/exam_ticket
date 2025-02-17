@@ -109,3 +109,33 @@
 }
 
 /* #endregion */
+
+@media (max-width: 768px) {
+    .main {
+        height: 73vh;
+    }
+    .monitor {
+        width: 100%;
+        height: 100%;
+        padding: 10px;
+    }
+    .student {
+        gap: 10px;
+        width: 100%;
+        height: 10vh;
+    }
+    .timers{
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        height: unset;
+    }
+    .timer {
+        width: 100%;
+    }
+    .runtimes {
+        gap: 10px;
+        width: 100%;
+        flex-direction: column;
+    }
+}
