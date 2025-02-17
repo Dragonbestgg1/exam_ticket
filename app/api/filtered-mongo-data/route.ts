@@ -2,18 +2,24 @@ import { NextResponse, NextRequest } from 'next/server';
 import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
 import getMongoClientPromise from '@/app/lib/mongodb';
 
+interface ClassDetails {
+  teacher?: string;
+  room?: string;
+  time?: string;
+  [key: string]: unknown; // Allow other properties, specify if you know more
+}
+
 interface ExamDocument {
   _id: ObjectId;
   examName: string;
-  classes: { [className: string]: { [key: string]: any } }; // Define structure more precisely
+  classes: { [className: string]: ClassDetails };
 }
 
 interface StructuredData {
-  [className: string]: {
-    [key: string]: any;
+  [className: string]: ClassDetails & {
     examName: string;
-    classes: string;
-    _id: string; // Store _id as string for consistency
+    className: string;
+    _id: string;
   };
 }
 
@@ -28,7 +34,7 @@ export async function GET(request: NextRequest) {
     const db: Db = mongoClient.db(process.env.MONGODB_DB || 'your_db_name'); // Replace with your DB name or handle undefined
     const collection: Collection<ExamDocument> = db.collection<ExamDocument>('exams');
 
-    const query: any = {}; // Initialize as any to handle dynamic queries
+    const query: Record<string, any> = {}; // Use Record<string, any> for dynamic queries
     if (examFilter) {
       query.examName = examFilter;
     }
@@ -41,14 +47,14 @@ export async function GET(request: NextRequest) {
     const structuredData: StructuredData = {};
 
     filteredData.forEach(doc => {
-      if (doc.classes) { // No need to check for object type, it's already defined in the interface
+      if (doc.classes) {
         for (const className in doc.classes) {
           if (doc.classes.hasOwnProperty(className)) {
             structuredData[className] = {
               ...doc.classes[className],
               examName: doc.examName,
-              classes: className,
-              _id: doc._id.toString(), // Convert ObjectId to string
+              className: className,
+              _id: doc._id.toString(),
             };
           }
         }

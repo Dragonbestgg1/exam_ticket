@@ -35,22 +35,19 @@ interface ExamDocument {
     examstart: string;
     duration: string;
     classes: { [className: string]: ClassData };
-}
+  }
 
-interface StructuredData {
-    [className: string]: ClassRecordData; // Use ClassRecordData here
-}
-interface ClassRecordData {
-    students: Student[];
-    examName: string;
-    classes: string;
-    _id: string; // Or ObjectId if you handle it as such in the Listing component
-    examstart: string;
-    duration: string;
-    // ... other properties from your classes
-    // ... any other properties of a single class record
-}
-
+  interface StructuredData {
+    [className: string]: {
+      students: Student[];
+      examName: string;
+      classes: string;
+      _id: ObjectId; // Use ObjectId type
+      examstart: string;
+      duration: string;
+      // ... other properties from your classes  <- Add these
+    };
+  }
 
 export default function HomePage() {
     const isAuthenticated = useUserAuthentication();
@@ -65,7 +62,7 @@ export default function HomePage() {
     const [elapsedTime, setElapsedTime] = useState<number>(0);
     const [extraTime, setExtraTime] = useState<number>(0);
     const timerInterval = useRef<NodeJS.Timeout | null>(null);
-    const [mongoData, setMongoData] = useState<StructuredData | null>(null); // Correctly typed
+    const [mongoData, setMongoData] = useState(null);
     const [loadingData, setLoadingData] = useState(true);
     const [errorLoadingData, setErrorLoadingData] = useState<Error | null>(null);
     const [timeoutError, setTimeoutError] = useState<boolean>(false);
@@ -175,7 +172,7 @@ export default function HomePage() {
                 if (!mongoResponse.ok) {
                     throw new Error(`HTTP error! status: ${mongoResponse.status} - Mongo Data`);
                 }
-                const data: StructuredData = await mongoResponse.json(); // Type the response
+                const data = await mongoResponse.json();
                 setMongoData(data);
 
             } catch (error: any) {
@@ -214,7 +211,7 @@ export default function HomePage() {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status} - Filtered Mongo Data`);
                 }
-                const data: StructuredData = await response.json(); // Type the response
+                const data = await response.json();
                 setMongoData(data);
 
             } catch (error: any) {
