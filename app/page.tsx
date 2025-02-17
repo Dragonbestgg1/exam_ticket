@@ -8,14 +8,15 @@ import style from '@/styles/pages/page.module.css';
 import { useSession } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { ObjectId } from 'mongodb';
-import { StructuredData } from '@/app/types';
+import { StructuredData } from '@/app/types'; // <-- Import interfaces from types.ts
+
 
 const useUserAuthentication = () => {
     const session = useSession();
     const isAuthenticated = !!session?.data;
     return isAuthenticated;
 };
+
 
 export default function HomePage() {
     const isAuthenticated = useUserAuthentication();
@@ -141,11 +142,11 @@ export default function HomePage() {
                 if (!mongoResponse.ok) {
                     throw new Error(`HTTP error! status: ${mongoResponse.status} - Mongo Data`);
                 }
-                const data: StructuredData = await mongoResponse.json(); // Type the response data
+                const data: StructuredData = await mongoResponse.json(); // Line ~147 - No more "any" error
                 setMongoData(data);
 
-            } catch (error: any) {
-                if (error.name === 'AbortError') {
+            } catch (error: unknown) { // Changed 'Error' to 'unknown' - Line ~186
+                if (error instanceof Error) {
                     setErrorLoadingData(new Error('Request timed out'));
                 } else {
                     setErrorLoadingData(error instanceof Error ? error : new Error('An unknown error occurred'));
@@ -180,11 +181,11 @@ export default function HomePage() {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status} - Filtered Mongo Data`);
                 }
-                const data: StructuredData = await response.json(); // Type the response data
+                const data: StructuredData = await response.json(); // Line ~245 - No more "any" error
                 setMongoData(data);
 
-            } catch (error: any) {
-                if (error.name === 'AbortError') {
+            } catch (error: unknown) { // Changed 'Error' to 'unknown' - Line ~254
+                if (error instanceof Error) {
                     setErrorLoadingData(new Error('Request timed out'));
                 } else {
                     setErrorLoadingData(error instanceof Error ? error : new Error('An unknown error occurred'));
