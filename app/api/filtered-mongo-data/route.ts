@@ -34,7 +34,8 @@ export async function GET(request: NextRequest) {
     const db: Db = mongoClient.db(process.env.MONGODB_DB || 'your_db_name'); // Replace with your DB name or handle undefined
     const collection: Collection<ExamDocument> = db.collection<ExamDocument>('exams');
 
-    const query: Record<string, any> = {}; // Use Record<string, any> for dynamic queries
+    // Use Record<string, unknown> instead of Record<string, any> for dynamic queries
+    const query: Record<string, unknown> = {};
     if (examFilter) {
       query.examName = examFilter;
     }
