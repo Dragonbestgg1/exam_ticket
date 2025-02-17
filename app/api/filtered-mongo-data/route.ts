@@ -1,19 +1,19 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { MongoClient, Db, Collection } from 'mongodb'; // Import necessary types
+import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
 import getMongoClientPromise from '@/app/lib/mongodb';
 
 interface ExamDocument {
-  _id: any; // Keep _id as any if its type is not consistent
+  _id: ObjectId;
   examName: string;
-  classes: { [className: string]: any }; // Define the structure of classes
+  classes: { [className: string]: { [key: string]: any } }; // Define structure more precisely
 }
 
 interface StructuredData {
   [className: string]: {
-    [key: string]: any; // Define the structure of class data
+    [key: string]: any;
     examName: string;
     classes: string;
-    _id: any;
+    _id: string; // Store _id as string for consistency
   };
 }
 
@@ -24,11 +24,11 @@ export async function GET(request: NextRequest) {
     const classFilter = searchParams.get('class') || '';
 
     const mongoClientPromise: Promise<MongoClient> = getMongoClientPromise();
-    const mongoClient = await mongoClientPromise; // Await the promise
-    const db: Db = mongoClient.db(process.env.MONGODB_DB || ''); // Provide a default value
+    const mongoClient = await mongoClientPromise;
+    const db: Db = mongoClient.db(process.env.MONGODB_DB || 'your_db_name'); // Replace with your DB name or handle undefined
     const collection: Collection<ExamDocument> = db.collection<ExamDocument>('exams');
 
-    let query: any = {};
+    const query: any = {}; // Initialize as any to handle dynamic queries
     if (examFilter) {
       query.examName = examFilter;
     }
@@ -41,14 +41,14 @@ export async function GET(request: NextRequest) {
     const structuredData: StructuredData = {};
 
     filteredData.forEach(doc => {
-      if (doc.classes && typeof doc.classes === 'object') {
+      if (doc.classes) { // No need to check for object type, it's already defined in the interface
         for (const className in doc.classes) {
           if (doc.classes.hasOwnProperty(className)) {
             structuredData[className] = {
               ...doc.classes[className],
               examName: doc.examName,
               classes: className,
-              _id: doc._id,
+              _id: doc._id.toString(), // Convert ObjectId to string
             };
           }
         }
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(structuredData);
 
   } catch (e) {
-    console.error("Error fetching data:", e); // Log the error for debugging
+    console.error("Error fetching data:", e);
     return NextResponse.json({ error: "Failed to fetch filtered data" }, { status: 500 });
   }
 }

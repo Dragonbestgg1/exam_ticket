@@ -26,8 +26,8 @@ interface StudentRecord {
 interface ClassRecordData {
     students: StudentRecord[];
     examName: string;
-    _id: string; // Or ObjectId if you are using that
-    examstart?: string; // Add examstart and duration as optional properties
+    _id: string;
+    examstart?: string;
     duration?: string;
 }
 
@@ -61,8 +61,8 @@ export default function Listing({
                             })),
                             examName: classData.examName,
                             _id: classData._id || `class-no-id-${className}-${classData.examName}-${Math.random()}`,
-                            examstart: classData.examstart, // Include examstart
-                            duration: classData.duration, // Include duration
+                            examstart: classData.examstart,
+                            duration: classData.duration,
                         });
                     }
                 }
@@ -100,13 +100,41 @@ export default function Listing({
 
     return (
         <div className={`${style.main}`}>
-            {/* ... dropdowns */}
+            <div className={`${style.dropdowns}`}>
+                <div>
+                    <label htmlFor="examDropdown">Eksāmens:</label>
+                    <select
+                        id="examDropdown"
+                        value={selectedExam}
+                        onChange={(e) => onExamChange(e.target.value)}
+                    >
+                        <option value="">Visi eksāmeni</option>
+                        {examOptions.map((exam, index) => (
+                            <option key={index} value={exam}>{exam}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label htmlFor="classDropdown">Kurss:</label>
+                    <select
+                        id="classDropdown"
+                        value={selectedClass}
+                        onChange={(e) => onClassChange(e.target.value)}
+                    >
+                        <option value="">Visi kursi</option>
+                        {classOptions.map((className, index) => (
+                            <option key={index} value={className}>{className}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
 
             {records.map((classRecord) => (
                 <div key={`${classRecord.classes}-${classRecord._id}`} className={`${style.outerList}`} >
                     <div>
                         <h2 className={`${style.title}`}>Eksāmens: {classRecord.examName} ({classRecord.classes})</h2>
-                        <h2 className={`${style.title}`}>Datums: </h2> {/* No data to display here yet */}
+                        <h2 className={`${style.title}`}>Datums: </h2>
                     </div>
                     <ul className={`${style.ul}`}>
                         {classRecord.students.map((student: StudentRecord) => (
