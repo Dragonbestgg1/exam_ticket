@@ -1,4 +1,3 @@
-// src/lib/types.ts
 import { ObjectId } from 'mongodb';
 
 export interface StudentRecord {
@@ -55,7 +54,6 @@ export interface ClassRecordData {
     duration?: string;
 }
 
-// Define ClassRecord interface here - it extends ClassRecordData and adds 'classes' property
 export interface ClassRecord extends ClassRecordData {
     classes: string;
 }
