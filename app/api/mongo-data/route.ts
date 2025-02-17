@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
+import { MongoClient, Db, Collection } from 'mongodb';
 import getMongoClientPromise from '@/app/lib/mongodb';
-import { StructuredData, ExamDocument, ClassDetails, StudentRecord } from '@/app/types';
+import { StructuredData, ExamDocument, ClassDetails } from '@/app/types';
 
 export async function GET() {
   try {
