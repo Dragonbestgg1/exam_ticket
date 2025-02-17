@@ -1,27 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
 import getMongoClientPromise from '@/app/lib/mongodb';
+import { StructuredData, ClassDetails, StudentRecord, ExamDocument } from '@/app/types';
 
-interface ClassDetails {
-  teacher?: string;
-  room?: string;
-  time?: string;
-  [key: string]: unknown; // Allow other properties, specify if you know more
-}
-
-interface ExamDocument {
-  _id: ObjectId;
-  examName: string;
-  classes: { [className: string]: ClassDetails };
-}
-
-interface StructuredData {
-  [className: string]: ClassDetails & {
-    examName: string;
-    className: string;
-    _id: string;
-  };
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,10 +12,9 @@ export async function GET(request: NextRequest) {
 
     const mongoClientPromise: Promise<MongoClient> = getMongoClientPromise();
     const mongoClient = await mongoClientPromise;
-    const db: Db = mongoClient.db(process.env.MONGODB_DB || 'your_db_name'); // Replace with your DB name or handle undefined
+    const db: Db = mongoClient.db(process.env.MONGODB_DB || 'your_db_name');
     const collection: Collection<ExamDocument> = db.collection<ExamDocument>('exams');
 
-    // Use Record<string, unknown> instead of Record<string, any> for dynamic queries
     const query: Record<string, unknown> = {};
     if (examFilter) {
       query.examName = examFilter;
@@ -52,7 +32,8 @@ export async function GET(request: NextRequest) {
         for (const className in doc.classes) {
           if (doc.classes.hasOwnProperty(className)) {
             structuredData[className] = {
-              ...doc.classes[className],
+              ...doc.classes[className], // Spread all class details (including students now if present)
+              students: doc.classes[className].students || [], // Ensure students array is included, default to empty array if missing (for safety)
               examName: doc.examName,
               className: className,
               _id: doc._id.toString(),

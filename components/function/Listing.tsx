@@ -2,38 +2,7 @@
 
 import style from '@/styles/functions/listing.module.css';
 import { useState, useEffect, useMemo } from 'react';
-
-interface ListingProps {
-    filterText: string;
-    initialRecordsData: Record<string, ClassRecordData> | null;
-    examOptions: string[];
-    classOptions: string[];
-    selectedExam: string;
-    selectedClass: string;
-    onExamChange: (exam: string) => void;
-    onClassChange: (className: string) => void;
-}
-
-interface StudentRecord {
-    _id: string;
-    name: string;
-    examDate: string;
-    examStartTime: string;
-    examDuration: string;
-    examEndTime: string;
-}
-
-interface ClassRecordData {
-    students: StudentRecord[];
-    examName: string;
-    _id: string;
-    examstart?: string;
-    duration?: string;
-}
-
-interface ClassRecord extends ClassRecordData {
-    classes: string;
-}
+import { ListingProps, ClassRecordData, StudentRecord, ClassRecord } from '@/app/types';
 
 export default function Listing({
     filterText,
