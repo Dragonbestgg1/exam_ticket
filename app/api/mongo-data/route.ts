@@ -1,38 +1,7 @@
 import { NextResponse } from 'next/server';
 import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
 import getMongoClientPromise from '@/app/lib/mongodb';
-
-interface Student {
-  _id: string;
-  name: string;
-  examDate: string;
-  examStartTime: string;
-  examDuration: string;
-  examEndTime: string;
-}
-
-interface ClassData {
-  students: Student[];
-}
-
-interface ExamDocument {
-  _id: ObjectId;
-  examName: string;
-  examstart: string;
-  duration: string;
-  classes: { [className: string]: ClassData };
-}
-
-interface StructuredData {
-  [className: string]: {
-    students: Student[];
-    examName: string;
-    classes: string;
-    _id: ObjectId;
-    examstart: string;
-    duration: string;
-  };
-}
+import { StructuredData, ExamDocument, ClassDetails, StudentRecord } from '@/app/types';
 
 export async function GET() {
   try {
@@ -49,11 +18,16 @@ export async function GET() {
       if (doc.classes && typeof doc.classes === 'object') {
         for (const className in doc.classes) {
           if (doc.classes.hasOwnProperty(className)) {
+            const classData = doc.classes[className] as ClassDetails;
+
+            const students = classData.students || [];
+
             structuredData[className] = {
-              ...doc.classes[className],
+              ...classData,
+              students: students,
               examName: doc.examName,
-              classes: className,
-              _id: doc._id,
+              className: className,
+              _id: doc._id.toString(),
               examstart: doc.examstart,
               duration: doc.duration,
             };
@@ -65,6 +39,7 @@ export async function GET() {
     return NextResponse.json(structuredData);
 
   } catch (error) {
+    console.error("Error fetching data:", error);
     return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
   }
 }

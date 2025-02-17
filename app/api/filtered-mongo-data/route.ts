@@ -44,7 +44,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(structuredData);
 
-  } catch (e) {
+  } catch (error) {
+    console.error("Error fetching data:", error);
     return NextResponse.json({ error: "Failed to fetch filtered data" }, { status: 500 });
   }
 }
