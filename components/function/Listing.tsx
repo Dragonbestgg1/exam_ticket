@@ -71,11 +71,11 @@ export default function Listing({
         <div className={`${style.main}`}>
             <div className={`${style.dropdowns}`}>
                 <div>
-                    <label htmlFor="examDropdown">Eksāmens:</label>
                     <select
                         id="examDropdown"
                         value={selectedExam}
                         onChange={(e) => onExamChange(e.target.value)}
+                        className={`${style.dropdown}`}
                     >
                         <option value="">Visi eksāmeni</option>
                         {examOptions.map((exam, index) => (
@@ -85,11 +85,11 @@ export default function Listing({
                 </div>
 
                 <div>
-                    <label htmlFor="classDropdown">Kurss:</label>
                     <select
                         id="classDropdown"
                         value={selectedClass}
                         onChange={(e) => onClassChange(e.target.value)}
+                        className={`${style.dropdown}`}
                     >
                         <option value="">Visi kursi</option>
                         {classOptions.map((className, index) => (
@@ -102,8 +102,7 @@ export default function Listing({
             {records.map((classRecord) => (
                 <div key={`${classRecord.classes}-${classRecord._id}`} className={`${style.outerList}`} >
                     <div>
-                        <h2 className={`${style.title}`}>Eksāmens: {classRecord.examName} ({classRecord.classes})</h2>
-                        <h2 className={`${style.title}`}>Datums: </h2>
+                        <h2 className={`${style.title}`}>{classRecord.examName} ({classRecord.classes})</h2>
                     </div>
                     <ul className={`${style.ul}`}>
                         {classRecord.students.map((student: StudentRecord) => (
