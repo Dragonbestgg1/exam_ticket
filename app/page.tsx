@@ -8,7 +8,7 @@ import style from '@/styles/pages/page.module.css';
 import { useSession } from 'next-auth/react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { StructuredData, StudentRecord } from '@/app/types';
+import { StructuredData, StudentRecord } from '@/types/types';
 
 const useUserAuthentication = () => {
     const session = useSession();

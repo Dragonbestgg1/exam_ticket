@@ -2,7 +2,7 @@
 
 import style from '@/styles/functions/listing.module.css';
 import { useState, useEffect, useMemo } from 'react';
-import { ListingProps, StudentRecord, ClassRecord } from '@/app/types';
+import { ListingProps, StudentRecord, ClassRecord } from '@/types/types';
 
 export default function Listing({
     filterText,
