@@ -43,13 +43,11 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
         checkStartTime();
     }, [currentTime, examStartTime]);
 
-
     const parseTime = (timeString: string): number => {
         if (!timeString) return 0;
         const [hours, minutes] = timeString.split(':').map(Number);
         return hours * 60 + minutes;
     };
-
 
     const handleLeftClick = () => {
         const arrowIcon = leftArrowWrapperRef.current?.querySelector('svg');
@@ -78,19 +76,17 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
     };
 
     const handleStartClick = () => {
-        if (!startDisabled && !isStartActive) { // Check if not disabled AND not already active
-            setIsStartActive(true); // Set to true to activate and KEEP active
-            setIsEndActive(false); // Ensure End is inactive
+        if (!startDisabled && !isStartActive) {
+            setIsStartActive(true);
+            setIsEndActive(false);
             onStart();
-        } else {
-            console.log("Start button disabled or already active, cannot start timer.");
         }
     };
 
     const handleEndClick = () => {
-        if (!isEndActive) { // Check if not already active
+        if (!isEndActive) {
             setIsEndActive(true);
-            setIsStartActive(false); // Deactivate Start button style when End is clicked
+            setIsStartActive(false);
             onEnd();
         }
     };

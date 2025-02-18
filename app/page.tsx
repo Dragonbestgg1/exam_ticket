@@ -8,7 +8,7 @@ import style from '@/styles/pages/page.module.css';
 import { useSession } from 'next-auth/react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { StructuredData, ClassDetails, StudentRecord } from '@/app/types';
+import { StructuredData, StudentRecord } from '@/app/types';
 
 const useUserAuthentication = () => {
     const session = useSession();
@@ -40,8 +40,7 @@ export default function HomePage() {
     const [firstStudent, setFirstStudent] = useState<StudentRecord | null>(null);
     const [currentStudentIndex, setCurrentStudentIndex] = useState<number>(0);
     const [currentStudentList, setCurrentStudentList] = useState<StudentRecord[]>([]);
-    const [headerCurrentTime, setHeaderCurrentTime] = useState<string>(''); // State in page.tsx
-
+    const [headerCurrentTime, setHeaderCurrentTime] = useState<string>('');
 
     const parseTimeToMs = (timeString: string): number => {
         const [hours, minutes] = timeString.split(':').map(Number);
@@ -52,18 +51,17 @@ export default function HomePage() {
     const calculatedEndTimeMs = parseTimeToMs(endTimeString);
 
     useEffect(() => {
-        const updateTime = () => { // Function to update time
+        const updateTime = () => {
             const now = new Date();
-            setHeaderCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })); // Update state in page.tsx
+            setHeaderCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         };
 
-        updateTime(); // Initial call
+        updateTime();
 
-        const timeUpdateIntervalId = setInterval(updateTime, 1000); // Update every second
+        const timeUpdateIntervalId = setInterval(updateTime, 1000);
 
-        return () => clearInterval(timeUpdateIntervalId); // Cleanup
-    }, []); // Run only on mount and unmount
-
+        return () => clearInterval(timeUpdateIntervalId);
+    }, []);
 
     useEffect(() => {
         if (isRunning) {
@@ -151,7 +149,6 @@ export default function HomePage() {
         }
     }, []);
 
-
     useEffect(() => {
         const fetchData = async () => {
             setLoadingData(true);
@@ -186,7 +183,6 @@ export default function HomePage() {
                 const data: StructuredData = await mongoResponse.json();
                 setMongoData(data);
                 updateFirstStudent(data);
-
 
             } catch (error: unknown) {
                 if (error instanceof Error) {
@@ -228,7 +224,6 @@ export default function HomePage() {
                 setMongoData(data);
                 updateFirstStudent(data);
 
-
             } catch (error: unknown) {
                 if (error instanceof Error) {
                     setErrorLoadingData(new Error('Request timed out'));
@@ -244,7 +239,6 @@ export default function HomePage() {
         fetchFilteredData();
 
     }, [selectedExam, selectedClass, updateFirstStudent]);
-
 
     const handlePreviousStudent = () => {
         if (currentStudentList.length > 0) {
@@ -262,13 +256,12 @@ export default function HomePage() {
         }
     };
 
-
     return (
         <div className={`${style.main}`}>
             <Header
                 onFilterChange={handleFilterChange}
                 isFilterActive={isHomePage}
-                currentTime={headerCurrentTime} // Pass headerCurrentTime state as prop
+                currentTime={headerCurrentTime}
             />
             <Monitor
                 startTime={firstStudent?.examStartTime ? formatTimeHM(firstStudent.examStartTime) : "00:00"}
@@ -301,7 +294,7 @@ export default function HomePage() {
                                 onPreviousStudent={handlePreviousStudent}
                                 onNextStudent={handleNextStudent}
                                 examStartTime={firstStudent?.examStartTime}
-                                currentTime={headerCurrentTime} // Pass headerCurrentTime state as prop
+                                currentTime={headerCurrentTime}
                             />
                         </div>
                     </>

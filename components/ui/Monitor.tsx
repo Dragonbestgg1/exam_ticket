@@ -8,10 +8,10 @@ interface MonitorProps {
     endTime: string;
     elapsedTime: string;
     extraTime: string;
-    studentName: string; // Only one student name prop
+    studentName: string;
 }
 
-const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extraTime, studentName }) => { // Destructure single studentName prop
+const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extraTime, studentName }) => {
     const [extraTimeDisplay, setExtraTimeDisplay] = useState('none');
 
     useEffect(() => {
@@ -26,7 +26,7 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
         <div className={`${style.main}`}>
             <div className={`${style.monitor}`}>
                 <div className={`${style.student}`}>
-                    <h1 className={`${style.studentName}`}>{studentName}</h1> {/* Use dynamic student name */}
+                    <h1 className={`${style.studentName}`}>{studentName}</h1>
                 </div>
                 <div className={`${style.timers}`}>
                     <div className={`${style.timer}`}>
