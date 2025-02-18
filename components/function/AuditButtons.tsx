@@ -20,6 +20,12 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
     const [isEndActive, setIsEndActive] = useState<boolean>(false);
     const [isMobile, setIsMobile] = useState(false);
     const [startDisabled, setStartDisabled] = useState<boolean>(false);
+    const [selectedBrakeInterval, setSelectedBrakeInterval] = useState<string>('');
+
+    const timeIntervals: number[] = [];
+    for (let i = 5; i <= 60; i += 5) {
+        timeIntervals.push(i);
+    }
 
     useEffect(() => {
         const handleResize = () => {
@@ -115,6 +121,18 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
         }
     };
 
+    const handleBrakeIntervalChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedBrakeInterval(event.target.value);
+    };
+
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        // Access the selected brake interval from the state or form data
+        console.log("Selected Brake Interval:", selectedBrakeInterval);
+        // You can perform further actions here like submitting the form data
+    };
+
+
     return (
         <div className={`${style.main}`}>
             <div className={`${style.testing}`}>
@@ -122,29 +140,44 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
                     className={`${style.start} ${isStartActive ? style.active : ''}`}
                     onClick={handleStartClick}
                     disabled={startDisabled}
+                    type="button" // prevent form submission
                 >
                     Sākt
                 </button>
                 <button
                     className={`${style.end} ${isEndActive ? style.active : ''}`}
                     onClick={handleEndClick}
+                    type="button" // prevent form submission
                 >
                     Beigt
                 </button>
             </div>
-            <div className={`${style.selector}`}>
-                <button className={`${style.selectorButton}`} onClick={handleLeftClick}>
-                    <span ref={leftArrowWrapperRef} style={{ display: 'inline-flex' }}>
-                        <FaArrowLeft style={{ transition: 'transform 0.3s ease-out' }} />
-                    </span>
-                    {!isMobile && <span>Iepriekšējais</span>}
-                </button>
-                <button className={`${style.selectorButton}`} onClick={handleRightClick}>
-                    {!isMobile && <span>Nākamais</span>}
-                    <span ref={rightArrowWrapperRef} style={{ display: 'inline-flex' }}>
-                        <FaArrowRight style={{ transition: 'transform 0.3s ease-out' }} />
-                    </span>
-                </button>
+            <div className={`${style.alignment}`}>
+                <div className={`${style.selector}`}>
+                    <button className={`${style.selectorButton}`} onClick={handleLeftClick} type="button">
+                        <span ref={leftArrowWrapperRef} style={{ display: 'inline-flex' }}>
+                            <FaArrowLeft style={{ transition: 'transform 0.3s ease-out' }} />
+                        </span>
+                        {!isMobile && <span>Iepriekšējais</span>}
+                    </button>
+                    <button className={`${style.selectorButton}`} onClick={handleRightClick} type="button">
+                        {!isMobile && <span>Nākamais</span>}
+                        <span ref={rightArrowWrapperRef} style={{ display: 'inline-flex' }}>
+                            <FaArrowRight style={{ transition: 'transform 0.3s ease-out' }} />
+                        </span>
+                    </button>
+                </div>
+                <form className={`${style.brakes}`} onSubmit={handleSubmit}>
+                    <select className={`${style.dropdown}`} value={selectedBrakeInterval} onChange={handleBrakeIntervalChange} name="brakeInterval">
+                        <option value="">Paņemt Pārtraukumu</option>
+                        {timeIntervals.map((interval) => (
+                            <option key={interval} value={String(interval)}>
+                                {interval} min
+                            </option>
+                        ))}
+                    </select>
+                     <button className={`${style.submitButton}`} type="submit">Pieteikt</button>
+                </form>
             </div>
         </div>
     )

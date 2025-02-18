@@ -10,6 +10,18 @@
     gap: 20px;
 }
 
+.alignment{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 75%;
+    height: 100%;
+    gap: 20px;
+    padding: 20px;
+    padding-left: 10px;
+}
+
 .testing {
     display: flex;
     flex-direction: column;
@@ -33,7 +45,19 @@
     gap: 60px;
     padding: 20px;
     padding-top: 40px;
-    padding-right: 170px;
+}
+
+.brakes{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 60%;
+    width: 75%;
+    gap: 40px;
+    padding: 20px;
+    padding-left: 30px;
+    padding-top: 0px;
 }
 
 /* #region buttons */
@@ -87,6 +111,30 @@
 
 .end:active{
     background-color: rgba(255, 0, 0, 1);
+}
+
+.dropdown{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-evenly;
+    width: 100%;
+    padding: 10px;
+    height: 20%;
+    border-radius: 5px;
+}
+
+.submitButton{
+    width: 100%;
+    height: 6vh;
+    background-color: rgba(0, 162, 255, 0.3);
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 /* #endregion */
