@@ -12,36 +12,29 @@ import { PiExam } from "react-icons/pi";
 interface HeaderProps {
     onFilterChange?: (filterText: string) => void;
     isFilterActive?: boolean;
+    currentTime: string; // Receive currentTime as prop
 }
 
-export default function Header({ onFilterChange, isFilterActive }: HeaderProps) {
-    const [time, setTime] = useState('');
+export default function Header({ onFilterChange, isFilterActive, currentTime }: HeaderProps) { // Destructure currentTime prop
     const [colonVisible, setColonVisible] = useState(true);
     const [filterInputActive, setFilterInputActive] = useState(false);
     const { data: session } = useSession();
     const [filterInput, setFilterInput] = useState('');
 
+
     useEffect(() => {
-        const updateTime = () => {
-            const now = new Date();
-            setTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-        };
-
-        updateTime();
-
-        const timeUpdateIntervalId = setInterval(updateTime, 1000);
-
         const colonBlinkIntervalId = setInterval(() => {
             setColonVisible(prevColonVisible => !prevColonVisible);
         }, 500);
 
         return () => {
-            clearInterval(timeUpdateIntervalId);
             clearInterval(colonBlinkIntervalId);
         };
     }, []);
 
-    const [hours, minutes] = time.split(':') || ['', ''];
+
+    const [hours, minutes] = currentTime.split(':') || ['', '']; // Use currentTime prop
+
 
     const handleFilterClick = () => {
         setFilterInputActive(!filterInputActive);

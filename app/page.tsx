@@ -29,7 +29,7 @@ export default function HomePage() {
     const [elapsedTime, setElapsedTime] = useState<number>(0);
     const [extraTime, setExtraTime] = useState<number>(0);
     const timerInterval = useRef<NodeJS.Timeout | null>(null);
-    const [mongoData, setMongoData] = useState<StructuredData | null>(null); // Updated type
+    const [mongoData, setMongoData] = useState<StructuredData | null>(null);
     const [loadingData, setLoadingData] = useState(true);
     const [errorLoadingData, setErrorLoadingData] = useState<Error | null>(null);
     const [timeoutError, setTimeoutError] = useState<boolean>(false);
@@ -37,9 +37,10 @@ export default function HomePage() {
     const [classOptions, setClassOptions] = useState<string[]>([]);
     const [selectedExam, setSelectedExam] = useState<string>('');
     const [selectedClass, setSelectedClass] = useState<string>('');
-    const [firstStudent, setFirstStudent] = useState<StudentRecord | null>(null); // State for first student data, now typed as StudentRecord
-    const [currentStudentIndex, setCurrentStudentIndex] = useState<number>(0); // State to track current student index
-    const [currentStudentList, setCurrentStudentList] = useState<StudentRecord[]>([]); // State to hold current student list
+    const [firstStudent, setFirstStudent] = useState<StudentRecord | null>(null);
+    const [currentStudentIndex, setCurrentStudentIndex] = useState<number>(0);
+    const [currentStudentList, setCurrentStudentList] = useState<StudentRecord[]>([]);
+    const [headerCurrentTime, setHeaderCurrentTime] = useState<string>(''); // State in page.tsx
 
 
     const parseTimeToMs = (timeString: string): number => {
@@ -49,6 +50,20 @@ export default function HomePage() {
 
     const calculatedStartTimeMs = parseTimeToMs(startTimeString);
     const calculatedEndTimeMs = parseTimeToMs(endTimeString);
+
+    useEffect(() => {
+        const updateTime = () => { // Function to update time
+            const now = new Date();
+            setHeaderCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })); // Update state in page.tsx
+        };
+
+        updateTime(); // Initial call
+
+        const timeUpdateIntervalId = setInterval(updateTime, 1000); // Update every second
+
+        return () => clearInterval(timeUpdateIntervalId); // Cleanup
+    }, []); // Run only on mount and unmount
+
 
     useEffect(() => {
         if (isRunning) {
@@ -73,9 +88,6 @@ export default function HomePage() {
     }, [isRunning, timerStartTime, calculatedStartTimeMs, calculatedEndTimeMs]);
 
     const handleStart = () => {
-        if (isRunning) {
-            clearInterval(timerInterval.current as NodeJS.Timeout);
-        }
         setIsRunning(true);
         setTimerStartTime(Date.now());
         setElapsedTime(0);
@@ -119,8 +131,8 @@ export default function HomePage() {
                 const firstClassName = classNames[0];
                 const firstClass = data[firstClassName];
                 if (firstClass && firstClass.students && firstClass.students.length > 0) {
-                    setCurrentStudentList(firstClass.students); // Set current student list
-                    setCurrentStudentIndex(0); // Reset index to 0 when data changes
+                    setCurrentStudentList(firstClass.students);
+                    setCurrentStudentIndex(0);
                     setFirstStudent(firstClass.students[0]);
                 } else {
                     setFirstStudent(null);
@@ -173,7 +185,7 @@ export default function HomePage() {
                 }
                 const data: StructuredData = await mongoResponse.json();
                 setMongoData(data);
-                updateFirstStudent(data); // Update first student and student list
+                updateFirstStudent(data);
 
 
             } catch (error: unknown) {
@@ -189,7 +201,7 @@ export default function HomePage() {
         };
 
         fetchData();
-    }, [updateFirstStudent]); // Dependency includes updateFirstStudent
+    }, [updateFirstStudent]);
 
     useEffect(() => {
         const fetchFilteredData = async () => {
@@ -214,7 +226,7 @@ export default function HomePage() {
                 }
                 const data: StructuredData = await response.json();
                 setMongoData(data);
-                updateFirstStudent(data); // Update first student and student list on filter
+                updateFirstStudent(data);
 
 
             } catch (error: unknown) {
@@ -231,7 +243,7 @@ export default function HomePage() {
 
         fetchFilteredData();
 
-    }, [selectedExam, selectedClass, updateFirstStudent]); // Dependencies include selectedExam, selectedClass, updateFirstStudent
+    }, [selectedExam, selectedClass, updateFirstStudent]);
 
 
     const handlePreviousStudent = () => {
@@ -253,13 +265,17 @@ export default function HomePage() {
 
     return (
         <div className={`${style.main}`}>
-            <Header onFilterChange={handleFilterChange} isFilterActive={isHomePage} />
+            <Header
+                onFilterChange={handleFilterChange}
+                isFilterActive={isHomePage}
+                currentTime={headerCurrentTime} // Pass headerCurrentTime state as prop
+            />
             <Monitor
-                startTime={firstStudent?.examStartTime ? formatTimeHM(firstStudent.examStartTime) : "00:00"} // Use optional chaining and default
-                endTime={firstStudent?.examEndTime ? formatTimeHM(firstStudent.examEndTime) : "00:00"}   // Use optional chaining and default
+                startTime={firstStudent?.examStartTime ? formatTimeHM(firstStudent.examStartTime) : "00:00"}
+                endTime={firstStudent?.examEndTime ? formatTimeHM(firstStudent.examEndTime) : "00:00"}
                 elapsedTime={formatTime(elapsedTime)}
                 extraTime={formatTime(extraTime)}
-                studentName={firstStudent?.name || "Loading..."} // Pass dynamic student name, default to "Loading..."
+                studentName={firstStudent?.name || "Loading..."}
             />
             {loadingData && <div>Loading data...</div>}
             {timeoutError && <div style={{ color: 'red' }}>Data loading timed out. Please check your connection or try again later.</div>}
@@ -284,6 +300,8 @@ export default function HomePage() {
                                 onEnd={handleEnd}
                                 onPreviousStudent={handlePreviousStudent}
                                 onNextStudent={handleNextStudent}
+                                examStartTime={firstStudent?.examStartTime}
+                                currentTime={headerCurrentTime} // Pass headerCurrentTime state as prop
                             />
                         </div>
                     </>

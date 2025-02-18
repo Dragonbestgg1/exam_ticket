@@ -7,31 +7,48 @@ import { useRef, useState, useEffect } from 'react';
 interface AuditButtonsProps {
     onStart: () => void;
     onEnd: () => void;
-    onPreviousStudent: () => void; // Function to handle previous student
-    onNextStudent: () => void;     // Function to handle next student
+    onPreviousStudent: () => void;
+    onNextStudent: () => void;
+    examStartTime: string | null | undefined;
+    currentTime: string;
 }
 
-const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousStudent, onNextStudent }) => { // Add new props
+const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousStudent, onNextStudent, examStartTime, currentTime }) => {
     const leftArrowWrapperRef = useRef<HTMLSpanElement | null>(null);
     const rightArrowWrapperRef = useRef<HTMLSpanElement | null>(null);
     const [isStartActive, setIsStartActive] = useState<boolean>(false);
     const [isEndActive, setIsEndActive] = useState<boolean>(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [startDisabled, setStartDisabled] = useState<boolean>(false);
 
     useEffect(() => {
         const handleResize = () => {
             setIsMobile(window.innerWidth < 768);
         };
-
-        // Set initial value
         handleResize();
-
-        // Add event listener for window resize
         window.addEventListener('resize', handleResize);
-
-        // Clean up event listener on unmount
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    useEffect(() => {
+        const checkStartTime = () => {
+            if (currentTime && examStartTime) {
+                const currentTimeParsed = parseTime(currentTime);
+                const examStartTimeParsed = parseTime(examStartTime);
+                setStartDisabled(currentTimeParsed < examStartTimeParsed);
+            } else {
+                setStartDisabled(false);
+            }
+        };
+        checkStartTime();
+    }, [currentTime, examStartTime]);
+
+
+    const parseTime = (timeString: string): number => {
+        if (!timeString) return 0;
+        const [hours, minutes] = timeString.split(':').map(Number);
+        return hours * 60 + minutes;
+    };
 
 
     const handleLeftClick = () => {
@@ -44,7 +61,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
                 }
             }, 300);
         }
-        onPreviousStudent(); // Call previous student handler
+        onPreviousStudent();
     };
 
     const handleRightClick = () => {
@@ -57,19 +74,25 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
                 }
             }, 300);
         }
-        onNextStudent();    // Call next student handler
+        onNextStudent();
     };
 
     const handleStartClick = () => {
-        setIsStartActive(!isStartActive);
-        setIsEndActive(false);
-        onStart();
+        if (!startDisabled && !isStartActive) { // Check if not disabled AND not already active
+            setIsStartActive(true); // Set to true to activate and KEEP active
+            setIsEndActive(false); // Ensure End is inactive
+            onStart();
+        } else {
+            console.log("Start button disabled or already active, cannot start timer.");
+        }
     };
 
     const handleEndClick = () => {
-        setIsEndActive(!isEndActive);
-        setIsStartActive(false);
-        onEnd();
+        if (!isEndActive) { // Check if not already active
+            setIsEndActive(true);
+            setIsStartActive(false); // Deactivate Start button style when End is clicked
+            onEnd();
+        }
     };
 
     return (
@@ -78,6 +101,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
                 <button
                     className={`${style.start} ${isStartActive ? style.active : ''}`}
                     onClick={handleStartClick}
+                    disabled={startDisabled}
                 >
                     Sākt
                 </button>
@@ -93,10 +117,10 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
                     <span ref={leftArrowWrapperRef} style={{ display: 'inline-flex' }}>
                         <FaArrowLeft style={{ transition: 'transform 0.3s ease-out' }} />
                     </span>
-                    {!isMobile && <span>Iepriekšējais</span>} {/* Conditionally render text */}
+                    {!isMobile && <span>Iepriekšējais</span>}
                 </button>
                 <button className={`${style.selectorButton}`} onClick={handleRightClick}>
-                    {!isMobile && <span>Nākamais</span>} {/* Conditionally render text */}
+                    {!isMobile && <span>Nākamais</span>}
                     <span ref={rightArrowWrapperRef} style={{ display: 'inline-flex' }}>
                         <FaArrowRight style={{ transition: 'transform 0.3s ease-out' }} />
                     </span>
