@@ -203,7 +203,7 @@ export default function AddExam() {
 
     return (
         <div className={`${style.main}`}>
-            <Header />
+            <Header currentTime="" /> {/* Pass empty string or default value for currentTime */}
             <form className={`${style.form}`} onSubmit={handleSubmit}>
                 <div className={`${style.mainInfo}`}>
                     <div className={`${style.input}`}>
