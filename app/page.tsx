@@ -22,8 +22,8 @@ export default function HomePage() {
     const pathname = usePathname();
     const isHomePage = pathname === '/';
 
-    const startTimeString = "12:39";
-    const endTimeString = "12:40";
+    const startTimeString = "00:00";
+    const endTimeString = "00:00";
     const [isRunning, setIsRunning] = useState<boolean>(false);
     const [timerStartTime, setTimerStartTime] = useState<number>(0);
     const [elapsedTime, setElapsedTime] = useState<number>(0);
@@ -42,13 +42,37 @@ export default function HomePage() {
     const [currentStudentList, setCurrentStudentList] = useState<StudentRecord[]>([]);
     const [headerCurrentTime, setHeaderCurrentTime] = useState<string>('');
 
-    const parseTimeToMs = (timeString: string): number => {
+    const parseTimeToMinutes = (timeString: string): number => {
+        if (!timeString) return 0;
+        const [hours, minutes] = timeString.split(':').map(Number);
+        return hours * 60 + minutes;
+    };
+
+    const parseTimeToMilliseconds = (timeString: string): number => {
+        if (!timeString) return 0;
         const [hours, minutes] = timeString.split(':').map(Number);
         return (hours * 3600 + minutes * 60) * 1000;
     };
 
-    const calculatedStartTimeMs = parseTimeToMs(startTimeString);
-    const calculatedEndTimeMs = parseTimeToMs(endTimeString);
+    const formatTime = (ms: number): string => {
+        const totalSeconds = Math.floor(ms / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    };
+
+    const formatTimeHoursMinutes = (timeString: string | null | undefined): string => {
+        if (!timeString) return "00:00";
+        const parts = timeString.split(':');
+        if (parts.length >= 2) {
+            return `${parts[0]}:${parts[1]}`;
+        }
+        return "00:00";
+    };
+
+    const calculatedStartTimeMs = parseTimeToMilliseconds(startTimeString);
+    const calculatedEndTimeMs = parseTimeToMilliseconds(endTimeString);
 
     useEffect(() => {
         const updateTime = () => {
@@ -69,13 +93,20 @@ export default function HomePage() {
                 const currentElapsedTime = Date.now() - timerStartTime;
                 setElapsedTime(currentElapsedTime);
 
-                const totalTimeMs = calculatedStartTimeMs + currentElapsedTime;
-                if (totalTimeMs > calculatedEndTimeMs) {
-                    setExtraTime(totalTimeMs - calculatedEndTimeMs);
-                } else {
-                    setExtraTime(0);
-                }
+                const currentStudentEndTime = firstStudent?.examEndTime;
+                const currentStudentStartTime = firstStudent?.examStartTime;
 
+                if (currentStudentEndTime && currentStudentStartTime) {
+                    const calculatedEndTimeMsForStudent = parseTimeToMilliseconds(currentStudentEndTime);
+                    const calculatedStartTimeMsForStudent = parseTimeToMilliseconds(currentStudentStartTime);
+                    const totalTimeMs = calculatedStartTimeMsForStudent + currentElapsedTime;
+
+                    if (totalTimeMs > calculatedEndTimeMsForStudent) {
+                        setExtraTime(totalTimeMs - calculatedEndTimeMsForStudent);
+                    } else {
+                        setExtraTime(0);
+                    }
+                }
             }, 1000);
         } else {
             clearInterval(timerInterval.current as NodeJS.Timeout);
@@ -83,41 +114,163 @@ export default function HomePage() {
         }
 
         return () => clearInterval(timerInterval.current as NodeJS.Timeout);
-    }, [isRunning, timerStartTime, calculatedStartTimeMs, calculatedEndTimeMs]);
+    }, [isRunning, timerStartTime, firstStudent?.examEndTime, firstStudent?.examStartTime]);
 
-    const handleStart = () => {
+    const handleStart = async (startTime: string) => {
         setIsRunning(true);
         setTimerStartTime(Date.now());
         setElapsedTime(0);
         setExtraTime(0);
+    
+        if (!firstStudent) return;
+    
+        const updatedStudent = { ...firstStudent, auditStartTime: startTime };
+        setFirstStudent(updatedStudent);
+    
+        try {
+            const response = await fetch('/api/student/updateAuditTime', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    studentId: firstStudent._id,
+                    auditStartTime: startTime,
+                    examName: selectedExam,  
+                    className: selectedClass, 
+                }),
+            });
+    
+            if (!response.ok) {
+                console.error('Failed to update audit start time in DB');
+            }
+    
+            await updateSubsequentStudentTimes(updatedStudent, true, selectedExam, selectedClass);
+    
+        } catch (error) {
+            console.error('Error updating audit start time:', error);
+        }
     };
-
-    const handleEnd = () => {
+    
+    const handleEnd = async (endTime: string) => {
         setIsRunning(false);
         clearInterval(timerInterval.current as NodeJS.Timeout);
+    
+        if (!firstStudent) return;
+    
+        const updatedStudent = { ...firstStudent, auditEndTime: endTime };
+        setFirstStudent(updatedStudent);
+    
+        const formattedElapsedTime = formatTime(elapsedTime);
+        const formattedExtraTime = formatTime(extraTime);
+    
+        try {
+            const response = await fetch('/api/student/updateAuditTime', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    studentId: firstStudent._id,
+                    auditEndTime: endTime,
+                    examName: selectedExam,
+                    className: selectedClass,
+                    auditElapsedTime: formattedElapsedTime,
+                    auditExtraTime: formattedExtraTime,
+                }),
+            });
+    
+            if (!response.ok) {
+                console.error('Failed to update audit end time in DB');
+            }
+    
+            await updateSubsequentStudentTimes(updatedStudent, false, selectedExam, selectedClass);
+    
+        } catch (error) {
+            console.error('Error updating audit end time:', error);
+        }
     };
 
-    const formatTime = (ms: number): string => {
-        const totalSeconds = Math.floor(ms / 1000);
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    const updateSubsequentStudentTimes = async (currentStudent: StudentRecord, isStart: boolean, examName: string, className: string) => {
+        if (!mongoData || !currentStudentList) return;
+    
+        const currentIndex = currentStudentIndex;
+        const currentAuditEndTime = currentStudent.auditEndTime || currentStudent.examEndTime;
+        let currentExamEndTimeParsed = 0;
+        if (currentAuditEndTime) {
+            currentExamEndTimeParsed = parseTimeToMinutes(currentAuditEndTime);
+        } else {
+            currentExamEndTimeParsed = parseTimeToMinutes(currentStudent.examEndTime);
+        }
+        const currentExamStartTimeParsed = parseTimeToMinutes(currentStudent.examStartTime);
+    
+        let lastEndTimeMinutes = currentExamEndTimeParsed;
+        const updatedStudentList = [...currentStudentList];
+    
+        for (let i = currentIndex + 1; i < updatedStudentList.length; i++) {
+            const studentToUpdate = updatedStudentList[i];
+            if (!studentToUpdate) continue;
+    
+            const originalStartTimeMinutes = parseTimeToMinutes(studentToUpdate.examStartTime);
+    
+            const studentDurationMinutes = parseInt(studentToUpdate.examDuration, 10);
+            if (isNaN(studentDurationMinutes)) {
+                continue;
+            }
+    
+            const newStartTimeMinutes = lastEndTimeMinutes;
+            const newEndTimeMinutes = newStartTimeMinutes + studentDurationMinutes;
+    
+            const newStartTime = `${String(Math.floor(newStartTimeMinutes / 60)).padStart(2, '0')}:${String(newStartTimeMinutes % 60).padStart(2, '0')}`;
+            const newEndTime = `${String(Math.floor(newEndTimeMinutes / 60)).padStart(2, '0')}:${String(newEndTimeMinutes % 60).padStart(2, '0')}`;
+    
+            studentToUpdate.examStartTime = newStartTime;
+            studentToUpdate.examEndTime = newEndTime;
+            updatedStudentList[i] = studentToUpdate;
+    
+            lastEndTimeMinutes = newEndTimeMinutes;
+    
+            try {
+                const response = await fetch('/api/student/updateExamTime', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        studentId: studentToUpdate._id,
+                        examStartTime: newStartTime,
+                        examEndTime: newEndTime,
+                        examName: examName,
+                        className: className
+                    }),
+                });
+    
+                if (!response.ok) {
+                    console.error(`Failed to update exam times for student ${studentToUpdate.name} in DB`);
+                }
+            } catch (error) {
+                console.error('Error updating exam times for subsequent student:', error);
+            }
+        }
+        setCurrentStudentList(updatedStudentList);
+    
+        const updatedMongoData = { ...mongoData };
+        if (firstStudent && updatedMongoData && updatedMongoData[selectedClass]) {
+            updatedMongoData[selectedClass].students = updatedStudentList;
+            setMongoData(updatedMongoData);
+        }
     };
 
-    const formatTimeHM = (timeString: string): string => {
-        const [hours, minutes] = timeString.split(':');
-        return `${hours}:${minutes}`;
-    };
+    const formatTimeHM = formatTimeHoursMinutes;
 
     const handleFilterChange = (text: string) => {
         setFilterText(text);
     };
 
     const handleExamChange = (exam: string) => {
-        setSelectedExam(exam);
+        setSelectedExam(exam); 
     };
-
+    
     const handleClassChange = (className: string) => {
         setSelectedClass(className);
     };
@@ -264,8 +417,8 @@ export default function HomePage() {
                 currentTime={headerCurrentTime}
             />
             <Monitor
-                startTime={firstStudent?.examStartTime ? formatTimeHM(firstStudent.examStartTime) : "00:00"}
-                endTime={firstStudent?.examEndTime ? formatTimeHM(firstStudent.examEndTime) : "00:00"}
+                startTime={formatTimeHM(firstStudent?.auditStartTime || firstStudent?.examStartTime)}
+                endTime={formatTimeHM(firstStudent?.auditEndTime || firstStudent?.examEndTime)}
                 elapsedTime={formatTime(elapsedTime)}
                 extraTime={formatTime(extraTime)}
                 studentName={firstStudent?.name || "Loading..."}

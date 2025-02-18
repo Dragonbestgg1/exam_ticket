@@ -5,8 +5,8 @@ import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { useRef, useState, useEffect } from 'react';
 
 interface AuditButtonsProps {
-    onStart: () => void;
-    onEnd: () => void;
+    onStart: (startTime: string) => void;
+    onEnd: (endTime: string) => void;
     onPreviousStudent: () => void;
     onNextStudent: () => void;
     examStartTime: string | null | undefined;
@@ -33,8 +33,8 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
     useEffect(() => {
         const checkStartTime = () => {
             if (currentTime && examStartTime) {
-                const currentTimeParsed = parseTime(currentTime);
-                const examStartTimeParsed = parseTime(examStartTime);
+                const currentTimeParsed = parseTimeToMinutes(currentTime);
+                const examStartTimeParsed = parseTimeToMinutes(examStartTime);
                 setStartDisabled(currentTimeParsed < examStartTimeParsed);
             } else {
                 setStartDisabled(false);
@@ -43,10 +43,32 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
         checkStartTime();
     }, [currentTime, examStartTime]);
 
-    const parseTime = (timeString: string): number => {
+    const parseTimeToMinutes = (timeString: string): number => {
         if (!timeString) return 0;
         const [hours, minutes] = timeString.split(':').map(Number);
         return hours * 60 + minutes;
+    };
+
+    const getCurrentTimeHHMM = (): string => {
+        const roundTimeToNearestMinute = (date: Date): string => {
+            const seconds = date.getSeconds();
+            let minutes = date.getMinutes();
+            let hours = date.getHours();
+
+            if (seconds >= 25) {
+                minutes++;
+                if (minutes === 60) {
+                    minutes = 0;
+                    hours++;
+                    if (hours === 24) {
+                        hours = 0;
+                    }
+                }
+            }
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        };
+        const now = new Date();
+        return roundTimeToNearestMinute(now);
     };
 
     const handleLeftClick = () => {
@@ -79,7 +101,8 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
         if (!startDisabled && !isStartActive) {
             setIsStartActive(true);
             setIsEndActive(false);
-            onStart();
+            const startTime = getCurrentTimeHHMM();
+            onStart(startTime);
         }
     };
 
@@ -87,7 +110,8 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
         if (!isEndActive) {
             setIsEndActive(true);
             setIsStartActive(false);
-            onEnd();
+            const endTime = getCurrentTimeHHMM();
+            onEnd(endTime);
         }
     };
 

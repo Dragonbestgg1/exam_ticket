@@ -5,9 +5,9 @@ import { v4 as uuidv4 } from "uuid";
 interface StudentData {
   _id: string;
   name: string;
-  examDate: string; // Use string for date
-  examStartTime: string; // Use string for time
-  examDuration: number; // Use number for duration (minutes)
+  examDate: string;
+  examStartTime: string;
+  examDuration: number;
   examEndTime: string;
 }
 
@@ -33,19 +33,37 @@ export async function POST(req: NextRequest) {
 
     const examDataFromRequest = await req.json();
 
-    // Validate request data (important!)
-    const { examName, examClass, studentsText, examDate, examStartTime, examDuration } = examDataFromRequest;
+    const {
+      examName,
+      examClass,
+      studentsText,
+      examDate,
+      examStartTime,
+      examDuration,
+    } = examDataFromRequest;
 
-    if (!examName || !examClass || !studentsText || !examDate || !examStartTime || !examDuration) {
-      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+    if (
+      !examName ||
+      !examClass ||
+      !studentsText ||
+      !examDate ||
+      !examStartTime ||
+      !examDuration
+    ) {
+      return NextResponse.json(
+        { message: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
-    const parsedDuration = Number(examDuration);  // Parse duration to a number
+    const parsedDuration = Number(examDuration);
 
     if (isNaN(parsedDuration) || parsedDuration <= 0) {
-        return NextResponse.json({ message: "Invalid exam duration" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Invalid exam duration" },
+        { status: 400 }
+      );
     }
-
 
     let currentStartTime = examStartTime;
     const studentsData = studentsText
@@ -56,12 +74,12 @@ export async function POST(req: NextRequest) {
           name: student.trim(),
           examDate: examDate,
           examStartTime: currentStartTime,
-          examDuration: parsedDuration, // Use the parsed number
+          examDuration: parsedDuration,
           examEndTime: "",
         };
         const examEndTime = calculateExamEndTime(
           currentStartTime,
-          parsedDuration // Use the parsed number
+          parsedDuration
         );
         studentData.examEndTime = examEndTime;
         currentStartTime = examEndTime;
@@ -75,7 +93,7 @@ export async function POST(req: NextRequest) {
     const examDocument = {
       examName: examName,
       examstart: examStartTime,
-      duration: parsedDuration, // Use the parsed number
+      duration: parsedDuration,
     };
 
     const existingExam = await examsCollection.findOne({ examName: examName });
@@ -141,7 +159,6 @@ export async function POST(req: NextRequest) {
     } else {
       errorMessage = String(error);
     }
-    console.error("Error adding/updating exam:", error);
     return NextResponse.json(
       { message: "Failed to add/update exam", error: errorMessage },
       { status: 500 }

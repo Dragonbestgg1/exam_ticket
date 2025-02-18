@@ -9,6 +9,8 @@ export interface StudentRecord {
   examDuration: string;
   examEndTime: string;
   [key: string]: unknown;
+  auditStartTime?: string | null;
+  auditEndTime?: string | null;
 }
 
 export interface ClassDetails {
@@ -57,4 +59,9 @@ export interface ClassRecordData {
 
 export interface ClassRecord extends ClassRecordData {
   classes: string;
+}
+
+export interface ClassData {
+  className: string;
+  students: StudentRecord[];
 }
