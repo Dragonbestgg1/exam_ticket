@@ -21,9 +21,6 @@ export default function HomePage() {
     const [filterText, setFilterText] = useState<string>('');
     const pathname = usePathname();
     const isHomePage = pathname === '/';
-
-    const startTimeString = "00:00";
-    const endTimeString = "00:00";
     const [isRunning, setIsRunning] = useState<boolean>(false);
     const [timerStartTime, setTimerStartTime] = useState<number>(0);
     const [elapsedTime, setElapsedTime] = useState<number>(0);
@@ -70,9 +67,6 @@ export default function HomePage() {
         }
         return "00:00";
     };
-
-    const calculatedStartTimeMs = parseTimeToMilliseconds(startTimeString);
-    const calculatedEndTimeMs = parseTimeToMilliseconds(endTimeString);
 
     useEffect(() => {
         const updateTime = () => {
@@ -202,7 +196,6 @@ export default function HomePage() {
         } else {
             currentExamEndTimeParsed = parseTimeToMinutes(currentStudent.examEndTime);
         }
-        const currentExamStartTimeParsed = parseTimeToMinutes(currentStudent.examStartTime);
     
         let lastEndTimeMinutes = currentExamEndTimeParsed;
         const updatedStudentList = [...currentStudentList];
@@ -210,8 +203,6 @@ export default function HomePage() {
         for (let i = currentIndex + 1; i < updatedStudentList.length; i++) {
             const studentToUpdate = updatedStudentList[i];
             if (!studentToUpdate) continue;
-    
-            const originalStartTimeMinutes = parseTimeToMinutes(studentToUpdate.examStartTime);
     
             const studentDurationMinutes = parseInt(studentToUpdate.examDuration, 10);
             if (isNaN(studentDurationMinutes)) {

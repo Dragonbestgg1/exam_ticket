@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import getMongoClientPromise from "@/app/lib/mongodb";
-import { MongoClient } from "mongodb";
+import { MongoClient, MongoError } from "mongodb";
 
 export async function POST(req: NextRequest) {
   try {
@@ -75,10 +75,19 @@ export async function POST(req: NextRequest) {
       { message: "Exam times updated successfully" },
       { status: 200 }
     );
-  } catch (e: any) {
-    return NextResponse.json(
-      { message: "Server error updating exam times", error: e.message },
-      { status: 500 }
-    );
+  } catch (e: unknown) {
+    if (e instanceof MongoError) {
+      console.error("MongoDB error updating exam times:", e);
+      return NextResponse.json(
+        { message: "Database error updating exam times", error: e.message },
+        { status: 500 }
+      );
+    } else if (e instanceof Error) {
+        console.error("Error updating exam times:", e);
+        return NextResponse.json({ message: "Server error updating exam times", error: e.message}, { status: 500 });
+    } else {
+        console.error("Unknown error updating exam times:", e);
+        return NextResponse.json({ message: "An unexpected error occurred", status: 500 });
+    }
   }
 }
