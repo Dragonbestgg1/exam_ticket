@@ -6,9 +6,9 @@ import Listing from '@/components/function/Listing';
 import AuditButtons from '@/components/function/AuditButtons';
 import style from '@/styles/pages/page.module.css';
 import { useSession } from 'next-auth/react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { StructuredData } from '@/app/types';
+import { StructuredData, ClassDetails, StudentRecord } from '@/app/types';
 
 const useUserAuthentication = () => {
     const session = useSession();
@@ -29,7 +29,7 @@ export default function HomePage() {
     const [elapsedTime, setElapsedTime] = useState<number>(0);
     const [extraTime, setExtraTime] = useState<number>(0);
     const timerInterval = useRef<NodeJS.Timeout | null>(null);
-    const [mongoData, setMongoData] = useState<StructuredData | null>(null);
+    const [mongoData, setMongoData] = useState<StructuredData | null>(null); // Updated type
     const [loadingData, setLoadingData] = useState(true);
     const [errorLoadingData, setErrorLoadingData] = useState<Error | null>(null);
     const [timeoutError, setTimeoutError] = useState<boolean>(false);
@@ -37,6 +37,10 @@ export default function HomePage() {
     const [classOptions, setClassOptions] = useState<string[]>([]);
     const [selectedExam, setSelectedExam] = useState<string>('');
     const [selectedClass, setSelectedClass] = useState<string>('');
+    const [firstStudent, setFirstStudent] = useState<StudentRecord | null>(null); // State for first student data, now typed as StudentRecord
+    const [currentStudentIndex, setCurrentStudentIndex] = useState<number>(0); // State to track current student index
+    const [currentStudentList, setCurrentStudentList] = useState<StudentRecord[]>([]); // State to hold current student list
+
 
     const parseTimeToMs = (timeString: string): number => {
         const [hours, minutes] = timeString.split(':').map(Number);
@@ -108,6 +112,34 @@ export default function HomePage() {
         setSelectedClass(className);
     };
 
+    const updateFirstStudent = useCallback((data: StructuredData | null) => {
+        if (data) {
+            const classNames = Object.keys(data);
+            if (classNames.length > 0) {
+                const firstClassName = classNames[0];
+                const firstClass = data[firstClassName];
+                if (firstClass && firstClass.students && firstClass.students.length > 0) {
+                    setCurrentStudentList(firstClass.students); // Set current student list
+                    setCurrentStudentIndex(0); // Reset index to 0 when data changes
+                    setFirstStudent(firstClass.students[0]);
+                } else {
+                    setFirstStudent(null);
+                    setCurrentStudentList([]);
+                    setCurrentStudentIndex(0);
+                }
+            } else {
+                setFirstStudent(null);
+                setCurrentStudentList([]);
+                setCurrentStudentIndex(0);
+            }
+        } else {
+            setFirstStudent(null);
+            setCurrentStudentList([]);
+            setCurrentStudentIndex(0);
+        }
+    }, []);
+
+
     useEffect(() => {
         const fetchData = async () => {
             setLoadingData(true);
@@ -141,6 +173,8 @@ export default function HomePage() {
                 }
                 const data: StructuredData = await mongoResponse.json();
                 setMongoData(data);
+                updateFirstStudent(data); // Update first student and student list
+
 
             } catch (error: unknown) {
                 if (error instanceof Error) {
@@ -155,7 +189,7 @@ export default function HomePage() {
         };
 
         fetchData();
-    }, []);
+    }, [updateFirstStudent]); // Dependency includes updateFirstStudent
 
     useEffect(() => {
         const fetchFilteredData = async () => {
@@ -180,6 +214,8 @@ export default function HomePage() {
                 }
                 const data: StructuredData = await response.json();
                 setMongoData(data);
+                updateFirstStudent(data); // Update first student and student list on filter
+
 
             } catch (error: unknown) {
                 if (error instanceof Error) {
@@ -195,16 +231,35 @@ export default function HomePage() {
 
         fetchFilteredData();
 
-    }, [selectedExam, selectedClass]);
+    }, [selectedExam, selectedClass, updateFirstStudent]); // Dependencies include selectedExam, selectedClass, updateFirstStudent
+
+
+    const handlePreviousStudent = () => {
+        if (currentStudentList.length > 0) {
+            const newIndex = currentStudentIndex > 0 ? currentStudentIndex - 1 : currentStudentList.length - 1;
+            setCurrentStudentIndex(newIndex);
+            setFirstStudent(currentStudentList[newIndex]);
+        }
+    };
+
+    const handleNextStudent = () => {
+        if (currentStudentList.length > 0) {
+            const newIndex = currentStudentIndex < currentStudentList.length - 1 ? currentStudentIndex + 1 : 0;
+            setCurrentStudentIndex(newIndex);
+            setFirstStudent(currentStudentList[newIndex]);
+        }
+    };
+
 
     return (
         <div className={`${style.main}`}>
             <Header onFilterChange={handleFilterChange} isFilterActive={isHomePage} />
             <Monitor
-                startTime={formatTimeHM(startTimeString)}
-                endTime={formatTimeHM(endTimeString)}
+                startTime={firstStudent?.examStartTime ? formatTimeHM(firstStudent.examStartTime) : "00:00"} // Use optional chaining and default
+                endTime={firstStudent?.examEndTime ? formatTimeHM(firstStudent.examEndTime) : "00:00"}   // Use optional chaining and default
                 elapsedTime={formatTime(elapsedTime)}
                 extraTime={formatTime(extraTime)}
+                studentName={firstStudent?.name || "Loading..."} // Pass dynamic student name, default to "Loading..."
             />
             {loadingData && <div>Loading data...</div>}
             {timeoutError && <div style={{ color: 'red' }}>Data loading timed out. Please check your connection or try again later.</div>}
@@ -224,7 +279,12 @@ export default function HomePage() {
                                 onExamChange={handleExamChange}
                                 onClassChange={handleClassChange}
                             />
-                            <AuditButtons onStart={handleStart} onEnd={handleEnd} />
+                            <AuditButtons
+                                onStart={handleStart}
+                                onEnd={handleEnd}
+                                onPreviousStudent={handlePreviousStudent}
+                                onNextStudent={handleNextStudent}
+                            />
                         </div>
                     </>
                 ) : (

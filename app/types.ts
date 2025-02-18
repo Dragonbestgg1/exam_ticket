@@ -1,3 +1,4 @@
+// app/types/structured-data.ts
 import { ObjectId } from 'mongodb';
 
 export interface StudentRecord {
@@ -11,33 +12,33 @@ export interface StudentRecord {
 }
 
 export interface ClassDetails {
-  teacher?: string;
-  room?: string;
-  time?: string;
-  students?: StudentRecord[];
-  [key: string]: unknown;
+    teacher?: string;
+    room?: string;
+    time?: string;
+    students?: StudentRecord[];
+    [key: string]: unknown;
 }
 
 export interface ExamDocument {
-  _id: ObjectId;
-  examName: string;
-  examstart: string;
-  duration: string;
-  classes: { [className: string]: ClassDetails };
+    _id: ObjectId;
+    examName: string;
+    examstart: string;
+    duration: string;
+    classes: { [className: string]: ClassDetails };
 }
 
 export interface StructuredData {
-  [className: string]: ClassDetails & {
-    examName: string;
-    className: string;
-    _id: string;
-    students: StudentRecord[];
-  };
+    [className: string]: ClassDetails & {
+        examName: string;
+        className: string;
+        _id: string;
+        students: StudentRecord[];
+    };
 }
 
 export interface ListingProps {
     filterText: string;
-    initialRecordsData: Record<string, ClassRecordData> | null;
+    initialRecordsData: StructuredData | null;
     examOptions: string[];
     classOptions: string[];
     selectedExam: string;
@@ -55,5 +56,5 @@ export interface ClassRecordData {
 }
 
 export interface ClassRecord extends ClassRecordData {
-    classes: string;
+    classes: string; 
 }

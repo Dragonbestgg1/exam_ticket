@@ -7,9 +7,11 @@ import { useRef, useState, useEffect } from 'react';
 interface AuditButtonsProps {
     onStart: () => void;
     onEnd: () => void;
+    onPreviousStudent: () => void; // Function to handle previous student
+    onNextStudent: () => void;     // Function to handle next student
 }
 
-const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd }) => {
+const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousStudent, onNextStudent }) => { // Add new props
     const leftArrowWrapperRef = useRef<HTMLSpanElement | null>(null);
     const rightArrowWrapperRef = useRef<HTMLSpanElement | null>(null);
     const [isStartActive, setIsStartActive] = useState<boolean>(false);
@@ -42,6 +44,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd }) => {
                 }
             }, 300);
         }
+        onPreviousStudent(); // Call previous student handler
     };
 
     const handleRightClick = () => {
@@ -54,6 +57,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd }) => {
                 }
             }, 300);
         }
+        onNextStudent();    // Call next student handler
     };
 
     const handleStartClick = () => {
