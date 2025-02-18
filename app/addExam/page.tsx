@@ -117,7 +117,7 @@ export default function AddExam() {
     };
 
     const validateForm = () => {
-        const errors: { [key: string]: string | null } = {}; // Use const
+        const errors: { [key: string]: string | null } = {};
 
         if (!examName.trim()) {
             errors.examName = 'Eksāmena nosaukums ir obligāts!';
@@ -203,7 +203,7 @@ export default function AddExam() {
 
     return (
         <div className={`${style.main}`}>
-            <Header currentTime="" /> {/* Pass empty string or default value for currentTime */}
+            <Header currentTime="" />
             <form className={`${style.form}`} onSubmit={handleSubmit}>
                 <div className={`${style.mainInfo}`}>
                     <div className={`${style.input}`}>

@@ -1,3 +1,4 @@
+// Header.tsx
 'use client';
 
 import Link from 'next/link';
@@ -12,7 +13,7 @@ import { PiExam } from "react-icons/pi";
 interface HeaderProps {
     onFilterChange?: (filterText: string) => void;
     isFilterActive?: boolean;
-    currentTime: string;
+    currentTime: string; // Still here, though unused in time display logic
 }
 
 export default function Header({ onFilterChange, isFilterActive, currentTime }: HeaderProps) {
@@ -22,16 +23,43 @@ export default function Header({ onFilterChange, isFilterActive, currentTime }: 
     const [filterInput, setFilterInput] = useState('');
 
     useEffect(() => {
+        console.log("Header useEffect is running"); // ADD THIS LINE
+
         const colonBlinkIntervalId = setInterval(() => {
+            console.log("setInterval callback is running"); // ADD THIS LINE
             setColonVisible(prevColonVisible => !prevColonVisible);
         }, 500);
 
         return () => {
             clearInterval(colonBlinkIntervalId);
+            console.log("Header useEffect cleanup"); // ADD THIS LINE
         };
     }, []);
 
-    const [hours, minutes] = currentTime.split(':') || ['', ''];
+    const [hours, minutes] = currentTime.split(':') || ['', '']; // currentTime prop is still unused for time display - this line is also effectively useless for time display
+    const [headerTimeHours, setHeaderTimeHours] = useState<string>(''); // State to hold hours
+    const [headerTimeMinutes, setHeaderTimeMinutes] = useState<string>(''); // State to hold minutes
+
+    useEffect(() => {
+        const updateTime = () => {
+            const now = new Date();
+            const hours = now.toLocaleTimeString([], { hour: '2-digit', hour12: false });
+            const minutes = now.toLocaleTimeString([], { minute: '2-digit' });
+
+            console.log("Updating time - Hours:", hours, "Minutes:", minutes); // ADD THIS LINE
+            setHeaderTimeHours(hours);
+            setHeaderTimeMinutes(minutes);
+        };
+
+        updateTime(); // Initial call to set time immediately
+        const timeUpdateIntervalId = setInterval(updateTime, 1000);
+
+        return () => {
+            clearInterval(timeUpdateIntervalId);
+            console.log("Time update interval cleared"); // ADD THIS LINE
+        };
+    }, []);
+
 
     const handleFilterClick = () => {
         setFilterInputActive(!filterInputActive);
@@ -67,9 +95,9 @@ export default function Header({ onFilterChange, isFilterActive, currentTime }: 
                 )}
             </nav>
             <h1 className={`${style.title}`}>
-                <span>{hours}</span>
+                <span>{headerTimeHours}</span>
                 <span style={{ visibility: colonVisible ? 'visible' : 'hidden' }}>:</span>
-                <span>{minutes}</span>
+                <span>{headerTimeMinutes}</span>
             </h1>
             {isFilterActive && (
                 <div className={`${style.search}`}>
