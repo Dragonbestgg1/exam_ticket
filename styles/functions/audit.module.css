@@ -125,8 +125,56 @@
     }
 }
 
-@media screen and (min-width: 768px) and (max-width:1024){
+@media screen and (min-width: 768px) and (max-width:1024px){
     .selector{
-        gap : 70px;
+        gap : 140px;
+    }
+    .start{
+        width: 25vw;
+    }
+    .end{
+        width: 25vw;
+    }
+    .testing{
+        gap: 100px;
+    }
+    .selectorButton{
+        width: unset;
+    }
+}
+
+@media screen and (width: 1024px){
+    .main {
+        width: 35vw;
+        flex-direction: column;
+        height: 20vh;
+        gap: 0px;
+    }
+    .testing{
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+    }
+    .start{
+        width: 15vw;
+        height: 5vh;
+    }
+    .end{
+        width: 15vw;
+        height: 5vh;
+    }
+    .selector{
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 10px;
+        padding: 0px;
+    }
+    .selectorButton{
+        width: 100px;
+        gap: 10px;
+        padding: 0px;
+        padding-bottom: 10px;
     }
 }

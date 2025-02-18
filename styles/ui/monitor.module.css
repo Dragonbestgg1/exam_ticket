@@ -152,5 +152,16 @@
         flex-direction: row;
         align-items: center;
         justify-content: center;
+        height: 7vh;
+    }
+    .main{
+        height: 40vh;
+    }
+    .monitor{
+        width: 60vw;
+        height: 40vh;
+    }
+    .student{
+        height: 6vh;
     }
 }

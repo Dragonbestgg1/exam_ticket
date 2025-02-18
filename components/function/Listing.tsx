@@ -3,6 +3,7 @@
 import style from '@/styles/functions/listing.module.css';
 import { useState, useEffect, useMemo } from 'react';
 import { ListingProps, StudentRecord, ClassRecord } from '@/types/types';
+import { useSession } from 'next-auth/react';
 
 export default function Listing({
     filterText,
@@ -44,6 +45,7 @@ export default function Listing({
     const constantTimeLabel = "Sākas:";
     const constantDateLabel = "Datums:";
     const constantDurationLabel = "Ilgums:";
+    const { data: session } = useSession();
 
     useEffect(() => {
         let filteredRecords = initialRecords;
@@ -51,6 +53,7 @@ export default function Listing({
         if (selectedExam) {
             filteredRecords = filteredRecords.filter(record => record.examName === selectedExam);
         }
+
         if (selectedClass) {
             filteredRecords = filteredRecords.filter(record => record.classes === selectedClass);
         }
@@ -66,6 +69,8 @@ export default function Listing({
 
         setRecords(filteredRecords);
     }, [filterText, initialRecords, selectedExam, selectedClass]);
+
+    const isAuthenticated = !!session?.user;
 
     return (
         <div className={`${style.main}`}>
@@ -110,17 +115,21 @@ export default function Listing({
                                         <h1>{student.name}</h1>
                                     </div>
                                     <div className={`${style.time}`}>
-                                        <h1>{constantDateLabel}</h1>
-                                        <h1>{student.examDate}</h1>
-                                    </div>
-                                    <div className={`${style.time}`}>
                                         <h1>{constantTimeLabel}</h1>
                                         <h1>{student.examStartTime}</h1>
                                     </div>
-                                    <div className={`${style.time}`}>
-                                        <h1>{constantDurationLabel}</h1>
-                                        <h1>{student.examDuration}</h1>
-                                    </div>
+                                    {!isAuthenticated && (
+                                        <>
+                                            <div className={`${style.time}`}>
+                                                <h1>{constantDateLabel}</h1>
+                                                <h1>{student.examDate}</h1>
+                                            </div>
+                                            <div className={`${style.time}`}>
+                                                <h1>{constantDurationLabel}</h1>
+                                                <h1>{student.examDuration} min</h1>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </li>
                         ))}

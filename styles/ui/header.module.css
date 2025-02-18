@@ -106,11 +106,19 @@
 /* #endregion */
 
 @media screen and (max-width: 768px) {
-    .nav {
-        display: none;
-    }
-
     .search {
         display: none;
+    }
+}
+
+@media screen and (min-width: 768px) and (max-width:1024px) {
+    .nav {
+        width: 20vw;
+        gap: 50px;
+    }
+    .search{
+        display: flex;
+        width: 25vw;
+        justify-content: flex-start;
     }
 }

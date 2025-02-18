@@ -29,7 +29,7 @@
 }
 
 .list {
-    width: 35vw;
+    width: 100%;
     list-style-type: circle;
     padding: 0;
     margin: 0;
@@ -134,5 +134,8 @@
         flex-direction: row;
         flex-wrap: wrap;
         gap: 30px;
-    }   
+    }
+    .list{
+        width: 120%;
+    }
 }
