@@ -30,8 +30,8 @@ export default function Listing({
                             })),
                             examName: classData.examName,
                             _id: classData._id || `class-no-id-${className}-${classData.examName}-${Math.random()}`,
-                            examstart: classData.examstart,
-                            duration: classData.duration,
+                            examstart: typeof classData.examstart === 'string' ? classData.examstart : undefined, // Type narrowing
+                            duration: typeof classData.duration === 'string' ? classData.duration : undefined,   // Type narrowing
                         });
                     }
                 }
@@ -61,7 +61,7 @@ export default function Listing({
                     student.name.toLowerCase().includes(filterText.toLowerCase())
                 );
                 return filteredStudents.length > 0 ? { ...classRecord, students: filteredStudents } : null;
-            }).filter(record => record !== null);
+            }).filter(record => record !== null) as ClassRecord[]; // Add type assertion here
         }
 
         setRecords(filteredRecords);
