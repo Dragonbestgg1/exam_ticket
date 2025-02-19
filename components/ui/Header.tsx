@@ -16,7 +16,7 @@ interface HeaderProps {
     currentTime: string;
 }
 
-export default function Header({ onFilterChange, isFilterActive, currentTime }: HeaderProps) {
+export default function Header({ onFilterChange, isFilterActive }: HeaderProps) {
     const [colonVisible, setColonVisible] = useState(true);
     const [filterInputActive, setFilterInputActive] = useState(false);
     const { data: session } = useSession();

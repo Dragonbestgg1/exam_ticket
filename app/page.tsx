@@ -291,7 +291,7 @@ export default function HomePage() {
             clearTimeout(timeoutId);
             setLoadingData(false);
         }
-    }, [updateFirstStudent, selectedExam, selectedClass]);
+    }, [updateFirstStudent]);
 
     const fetchData = useCallback(async () => {
         setLoadingData(true);
