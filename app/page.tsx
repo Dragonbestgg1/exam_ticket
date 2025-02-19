@@ -127,79 +127,7 @@ export default function HomePage() {
     }, [isRunning, timerStartTime, firstStudent?.examEndTime, firstStudent?.examStartTime]);
 
 
-    // =========================
-    // Time Update Functions (updateSubsequentStudentTimes) - Used by AuditButtons and potentially data updates
-    // =========================
-
-    const updateSubsequentStudentTimes = useCallback(async (currentStudent: StudentRecord, isStart: boolean, examName: string, className: string) => {
-        if (!mongoData || !currentStudentList) return;
-
-        const currentIndex = currentStudentIndex;
-        const currentAuditEndTime = currentStudent.auditEndTime || currentStudent.examEndTime;
-        let currentExamEndTimeParsed = 0;
-        if (currentAuditEndTime) {
-            currentExamEndTimeParsed = parseTimeToMinutes(currentAuditEndTime);
-        } else {
-            currentExamEndTimeParsed = parseTimeToMinutes(currentStudent.examEndTime);
-        }
-
-        let lastEndTimeMinutes = currentExamEndTimeParsed;
-        const updatedStudentList = [...currentStudentList];
-
-        for (let i = currentIndex + 1; i < updatedStudentList.length; i++) {
-            const studentToUpdate = updatedStudentList[i];
-            if (!studentToUpdate) continue;
-
-            const studentDurationMinutes = parseInt(studentToUpdate.examDuration, 10);
-            if (isNaN(studentDurationMinutes)) {
-                continue;
-            }
-
-            const newStartTimeMinutes = lastEndTimeMinutes;
-            const newEndTimeMinutes = newStartTimeMinutes + studentDurationMinutes;
-
-            const newStartTime = `${String(Math.floor(newStartTimeMinutes / 60)).padStart(2, '0')}:${String(newStartTimeMinutes % 60).padStart(2, '0')}`;
-            const newEndTime = `${String(Math.floor(newEndTimeMinutes / 60)).padStart(2, '0')}:${String(newEndTimeMinutes % 60).padStart(2, '0')}`;
-
-            studentToUpdate.examStartTime = newStartTime;
-            studentToUpdate.examEndTime = newEndTime;
-            updatedStudentList[i] = studentToUpdate;
-
-            lastEndTimeMinutes = newEndTimeMinutes;
-
-            try {
-                const response = await fetch('/api/student/updateExamTime', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        studentId: studentToUpdate._id,
-                        examStartTime: newStartTime,
-                        examEndTime: newEndTime,
-                        examName: examName,
-                        className: className
-                    }),
-                });
-
-                if (!response.ok) {
-                    console.error(`Failed to update exam times for student ${studentToUpdate.name} in DB`);
-                }
-            } catch (error) {
-                console.error('Error updating exam times for subsequent student:', error);
-            }
-        }
-        setCurrentStudentList(updatedStudentList);
-
-        const updatedMongoData = { ...mongoData };
-        if (firstStudent && updatedMongoData && updatedMongoData[selectedClass]) {
-            updatedMongoData[selectedClass].students = updatedStudentList;
-            setMongoData(updatedMongoData);
-        }
-    }, [currentStudentIndex, currentStudentList, firstStudent, mongoData, selectedClass]);
-
-
-    const handleStart = useCallback(async (startTime: string) => {
+    const handleStart = async (startTime: string) => {
         setIsRunning(true);
         setTimerStartTime(Date.now());
         setElapsedTime(0);
@@ -233,10 +161,9 @@ export default function HomePage() {
         } catch (error) {
             console.error('Error updating audit start time:', error);
         }
-    }, [firstStudent, selectedExam, selectedClass, updateSubsequentStudentTimes]);
+    };
 
-
-    const handleEnd = useCallback(async (endTime: string) => {
+    const handleEnd = async (endTime: string) => {
         setIsRunning(false);
         if (timerInterval.current) {
             clearInterval(timerInterval.current);
@@ -276,24 +203,24 @@ export default function HomePage() {
         } catch (error) {
             console.error('Error updating audit end time:', error);
         }
-    }, [elapsedTime, extraTime, firstStudent, selectedExam, selectedClass, updateSubsequentStudentTimes]);
+    };
 
 
     // =========================
     // Listing Component Functions (handleFilterChange, handleExamChange, handleClassChange)
     // =========================
 
-    const handleFilterChange = useCallback((text: string) => {
+    const handleFilterChange = (text: string) => {
         setFilterText(text);
-    }, []);
+    };
 
-    const handleExamChange = useCallback((exam: string) => {
+    const handleExamChange = (exam: string) => {
         setSelectedExam(exam);
-    }, []);
+    };
 
-    const handleClassChange = useCallback((className: string) => {
+    const handleClassChange = (className: string) => {
         setSelectedClass(className);
-    }, []);
+    };
 
 
     // =========================
@@ -423,25 +350,97 @@ export default function HomePage() {
     }, [fetchFilteredData, selectedExam, selectedClass]);
 
 
-    const handlePreviousStudent = useCallback(() => {
+    const handlePreviousStudent = () => {
         if (currentStudentList.length > 0) {
             const newIndex = currentStudentIndex > 0 ? currentStudentIndex - 1 : currentStudentList.length - 1;
             setCurrentStudentIndex(newIndex);
             setFirstStudent(currentStudentList[newIndex]);
         }
-    }, [currentStudentIndex, currentStudentList, setFirstStudent, setCurrentStudentIndex]);
+    };
 
-    const handleNextStudent = useCallback(() => {
+    const handleNextStudent = () => {
         if (currentStudentList.length > 0) {
             const newIndex = currentStudentIndex < currentStudentList.length - 1 ? currentStudentIndex + 1 : 0;
             setCurrentStudentIndex(newIndex);
             setFirstStudent(currentStudentList[newIndex]);
         }
-    }, [currentStudentIndex, currentStudentList, setFirstStudent, setCurrentStudentIndex]);
+    };
 
 
     // =========================
-    // JSX Rendering -
+    // Time Update Functions (updateSubsequentStudentTimes) - Used by AuditButtons and potentially data updates
+    // =========================
+
+    const updateSubsequentStudentTimes = async (currentStudent: StudentRecord, isStart: boolean, examName: string, className: string) => {
+        if (!mongoData || !currentStudentList) return;
+
+        const currentIndex = currentStudentIndex;
+        const currentAuditEndTime = currentStudent.auditEndTime || currentStudent.examEndTime;
+        let currentExamEndTimeParsed = 0;
+        if (currentAuditEndTime) {
+            currentExamEndTimeParsed = parseTimeToMinutes(currentAuditEndTime);
+        } else {
+            currentExamEndTimeParsed = parseTimeToMinutes(currentStudent.examEndTime);
+        }
+
+        let lastEndTimeMinutes = currentExamEndTimeParsed;
+        const updatedStudentList = [...currentStudentList];
+
+        for (let i = currentIndex + 1; i < updatedStudentList.length; i++) {
+            const studentToUpdate = updatedStudentList[i];
+            if (!studentToUpdate) continue;
+
+            const studentDurationMinutes = parseInt(studentToUpdate.examDuration, 10);
+            if (isNaN(studentDurationMinutes)) {
+                continue;
+            }
+
+            const newStartTimeMinutes = lastEndTimeMinutes;
+            const newEndTimeMinutes = newStartTimeMinutes + studentDurationMinutes;
+
+            const newStartTime = `${String(Math.floor(newStartTimeMinutes / 60)).padStart(2, '0')}:${String(newStartTimeMinutes % 60).padStart(2, '0')}`;
+            const newEndTime = `${String(Math.floor(newEndTimeMinutes / 60)).padStart(2, '0')}:${String(newEndTimeMinutes % 60).padStart(2, '0')}`;
+
+            studentToUpdate.examStartTime = newStartTime;
+            studentToUpdate.examEndTime = newEndTime;
+            updatedStudentList[i] = studentToUpdate;
+
+            lastEndTimeMinutes = newEndTimeMinutes;
+
+            try {
+                const response = await fetch('/api/student/updateExamTime', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        studentId: studentToUpdate._id,
+                        examStartTime: newStartTime,
+                        examEndTime: newEndTime,
+                        examName: examName,
+                        className: className
+                    }),
+                });
+
+                if (!response.ok) {
+                    console.error(`Failed to update exam times for student ${studentToUpdate.name} in DB`);
+                }
+            } catch (error) {
+                console.error('Error updating exam times for subsequent student:', error);
+            }
+        }
+        setCurrentStudentList(updatedStudentList);
+
+        const updatedMongoData = { ...mongoData };
+        if (firstStudent && updatedMongoData && updatedMongoData[selectedClass]) {
+            updatedMongoData[selectedClass].students = updatedStudentList;
+            setMongoData(updatedMongoData);
+        }
+    };
+
+
+    // =========================
+    // JSX Rendering -  Organized by Component Usage and conditional rendering
     // =========================
 
     return (
