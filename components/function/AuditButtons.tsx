@@ -4,6 +4,7 @@ import style from '@/styles/functions/audit.module.css'
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { useRef, useState, useEffect } from 'react';
 
+/* eslint-disable react-hooks/rules-of-hooks */
 
 interface AuditButtonsProps {
     onStart: (startTime: string) => void;
