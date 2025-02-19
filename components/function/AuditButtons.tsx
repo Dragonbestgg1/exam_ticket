@@ -3,7 +3,6 @@
 import style from '@/styles/functions/audit.module.css'
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { useRef, useState, useEffect } from 'react';
-/* eslint-disable react-hooks/rules-of-hooks */
 
 
 interface AuditButtonsProps {
@@ -130,10 +129,8 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
 
     const handleBrakeIntervalChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedBrakeInterval(event.target.value);
-        console.log("Selected Brake Interval Changed:", event.target.value);
     };
 
-    // In your AuditButtons component
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -159,8 +156,8 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
                     startTime: currentTimeHHMM,
                     endTime: brakeEndTimeHHMM,
                     isBreakActive: true,
-                    examName: examName, // Send examName
-                    className: className, // Send className
+                    examName: examName,
+                    className: className,
                 }),
             });
 
@@ -170,15 +167,13 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
                 throw new Error(errorMessage);
             }
 
-            const successData = await response.json();
-            console.log("API Success:", successData.message);
+            await response.json();
             setIsBreakActive(true);
             alert(`Brake submitted successfully! Brake ends at ${brakeEndTimeHHMM}`);
             setSelectedBrakeInterval('');
 
 
         } catch (error: any) {
-            console.error("Error submitting brake time via API:", error);
             alert(`Failed to submit brake time: ${error.message}`);
         }
     };
