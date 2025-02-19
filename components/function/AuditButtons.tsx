@@ -3,6 +3,7 @@
 import style from '@/styles/functions/audit.module.css'
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { useRef, useState, useEffect } from 'react';
+import { StudentRecord } from '@/types/types';
 
 /* eslint-disable react-hooks/rules-of-hooks */
 
@@ -15,10 +16,12 @@ interface AuditButtonsProps {
     currentTime: string;
     examName: string;
     className: string;
+    documentId: string | null;
+    firstStudent: StudentRecord | null;
 }
 
 const AuditButtons: React.FC<AuditButtonsProps> = ({
-    onStart, onEnd, onPreviousStudent, onNextStudent, examStartTime, currentTime, examName, className
+    firstStudent, onStart, onEnd, onPreviousStudent, onNextStudent, examStartTime, currentTime, examName, className, documentId
 }) => {
     const leftArrowWrapperRef = useRef<HTMLSpanElement | null>(null);
     const rightArrowWrapperRef = useRef<HTMLSpanElement | null>(null);
@@ -159,6 +162,8 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
                     isBreakActive: true,
                     examName: examName,
                     className: className,
+                    documentId: documentId, // ExamDocument ObjectId
+                    studentUUID: firstStudent?._id, // Send student's UUID as studentUUID
                 }),
             });
 

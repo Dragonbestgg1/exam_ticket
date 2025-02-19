@@ -76,6 +76,7 @@ export default function HomePage() {
     const [currentStudentIndex, setCurrentStudentIndex] = useState<number>(0);
     const [currentStudentList, setCurrentStudentList] = useState<StudentRecord[]>([]);
     const [headerCurrentTime, setHeaderCurrentTime] = useState<string>('');
+    const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
 
     const formatHM = formatTimeHoursMinutes;
 
@@ -234,23 +235,29 @@ export default function HomePage() {
                 const firstClassName = classNames[0];
                 const firstClass = data[firstClassName];
                 if (firstClass && firstClass.students && firstClass.students.length > 0) {
+                    const firstStudentData = firstClass.students[0];
+    
                     setCurrentStudentList(firstClass.students);
                     setCurrentStudentIndex(0);
-                    setFirstStudent(firstClass.students[0]);
+                    setFirstStudent(firstStudentData);
+                    setCurrentDocumentId(firstClass._id || null);
                 } else {
                     setFirstStudent(null);
                     setCurrentStudentList([]);
                     setCurrentStudentIndex(0);
+                    setCurrentDocumentId(null);
                 }
             } else {
                 setFirstStudent(null);
                 setCurrentStudentList([]);
                 setCurrentStudentIndex(0);
+                setCurrentDocumentId(null);
             }
         } else {
             setFirstStudent(null);
             setCurrentStudentList([]);
             setCurrentStudentIndex(0);
+            setCurrentDocumentId(null);
         }
     }, []);
 
@@ -355,6 +362,7 @@ export default function HomePage() {
             const newIndex = currentStudentIndex > 0 ? currentStudentIndex - 1 : currentStudentList.length - 1;
             setCurrentStudentIndex(newIndex);
             setFirstStudent(currentStudentList[newIndex]);
+            setCurrentDocumentId(currentStudentList[newIndex]._id?.toString() || null);
         }
     };
 
@@ -363,6 +371,7 @@ export default function HomePage() {
             const newIndex = currentStudentIndex < currentStudentList.length - 1 ? currentStudentIndex + 1 : 0;
             setCurrentStudentIndex(newIndex);
             setFirstStudent(currentStudentList[newIndex]);
+            setCurrentDocumentId(currentStudentList[newIndex]._id?.toString() || null);
         }
     };
 
@@ -484,6 +493,8 @@ export default function HomePage() {
                                 currentTime={headerCurrentTime}
                                 examName={selectedExam}
                                 className={selectedClass}
+                                documentId={currentDocumentId}
+                                firstStudent={firstStudent}
                             />
                         </div>
                     </>

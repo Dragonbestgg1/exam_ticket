@@ -115,6 +115,25 @@
     color: crimson;
 }
 
+.breakActive {
+    background-color: red;
+    color: white;
+}
+
+.breakDisplay {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+
+.breakText {
+    font-size: 2em;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
 /* #endregion */
 
 @media (max-width: 768px) {
