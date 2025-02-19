@@ -236,7 +236,7 @@ export default function HomePage() {
                 const firstClass = data[firstClassName];
                 if (firstClass && firstClass.students && firstClass.students.length > 0) {
                     const firstStudentData = firstClass.students[0];
-    
+
                     setCurrentStudentList(firstClass.students);
                     setCurrentStudentIndex(0);
                     setFirstStudent(firstStudentData);
