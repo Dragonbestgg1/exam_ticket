@@ -172,7 +172,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
                 </div>
                 <form className={`${style.brakes}`} onSubmit={handleSubmit}>
                     <select className={`${style.dropdown}`} value={selectedBrakeInterval} onChange={handleBrakeIntervalChange} name="brakeInterval">
-                        <option value="">Paņemt Pārtraukumu</option>
+                        <option value="">Laiks</option>
                         {timeIntervals.map((interval) => (
                             <option key={interval} value={String(interval)}>
                                 {interval} min

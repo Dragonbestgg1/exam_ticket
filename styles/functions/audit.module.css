@@ -53,7 +53,7 @@
     align-items: center;
     justify-content: center;
     height: 60%;
-    width: 75%;
+    width: 80%;
     gap: 40px;
     padding: 10px;
 }
@@ -117,14 +117,14 @@
     gap: 10px;
     align-items: center;
     justify-content: space-evenly;
-    width: 100%;
+    width: 15w;
     padding: 10px;
     height: 5vh;
     border-radius: 5px;
 }
 
 .submitButton{
-    width: 100%;
+    width: 9vw;
     height: 6vh;
     background-color: rgba(0, 162, 255, 0.3);
     color: black;
