@@ -123,6 +123,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
 
     const handleBrakeIntervalChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedBrakeInterval(event.target.value);
+        console.log("Selected Brake Interval Changed:", event.target.value); // ADD THIS LINE
     };
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -140,14 +141,14 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
                     className={`${style.start} ${isStartActive ? style.active : ''}`}
                     onClick={handleStartClick}
                     disabled={startDisabled}
-                    type="button" // prevent form submission
+                    type="button"
                 >
                     Sākt
                 </button>
                 <button
                     className={`${style.end} ${isEndActive ? style.active : ''}`}
                     onClick={handleEndClick}
-                    type="button" // prevent form submission
+                    type="button"
                 >
                     Beigt
                 </button>
@@ -176,7 +177,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
                             </option>
                         ))}
                     </select>
-                     <button className={`${style.submitButton}`} type="submit">Pieteikt</button>
+                    <button className={`${style.submitButton}`} type="submit">Pieteikt</button>
                 </form>
             </div>
         </div>

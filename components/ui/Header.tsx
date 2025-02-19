@@ -39,15 +39,16 @@ export default function Header({ onFilterChange, isFilterActive, currentTime }: 
     useEffect(() => {
         const updateTime = () => {
             const now = new Date();
+    
             const hours = now.toLocaleTimeString([], { hour: '2-digit', hour12: false });
-            const minutes = now.toLocaleTimeString([], { minute: '2-digit' });
+            const minutes = String(now.getMinutes()).padStart(2, '0');
             setHeaderTimeHours(hours);
             setHeaderTimeMinutes(minutes);
         };
-
+    
         updateTime();
         const timeUpdateIntervalId = setInterval(updateTime, 1000);
-
+    
         return () => {
             clearInterval(timeUpdateIntervalId);
         };
