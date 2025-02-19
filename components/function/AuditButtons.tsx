@@ -174,8 +174,14 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
             setSelectedBrakeInterval('');
 
 
-        } catch (error: any) {
-            alert(`Failed to submit brake time: ${error.message}`);
+        } catch (error: unknown) {
+            let errorMessage = "Failed to submit brake time.";
+            if (error instanceof Error) {
+                errorMessage += ` Error: ${error.message}`;
+            } else {
+                errorMessage += ` Unknown error: ${String(error)}`;
+            }
+            alert(errorMessage);
         }
     };
 

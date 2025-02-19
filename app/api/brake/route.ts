@@ -1,6 +1,13 @@
 import { NextResponse, NextRequest } from "next/server";
 import getMongoClientPromise from "@/app/lib/mongodb";
 
+interface Student {
+  _id: string;
+  examStartTime: string;
+  examDuration: number;
+  examEndTime: string;
+}
+
 const parseTimeToMinutes = (timeString: string): number => {
   if (!timeString) return 0;
   if (typeof timeString !== "string") return 0;
@@ -14,7 +21,7 @@ const formatMinutesToTime = (minutes: number): string => {
   return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
 };
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
   try {
     const requestBody = await req.json();
     const {
@@ -45,7 +52,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     });
 
     if (existingBrake) {
-      const updateResult = await brakesCollection.updateOne(
+      await brakesCollection.updateOne(
         { examName: examName, className: className },
         {
           $set: {
@@ -69,7 +76,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
           { status: 400 }
         );
       }
-      const insertResult = await brakesCollection.insertOne({
+      await brakesCollection.insertOne({
         startTime,
         interval: parseInt(brakeMinutes, 10),
         endTime,
@@ -101,14 +108,16 @@ export async function POST(req: NextRequest, res: NextResponse) {
     let closestStudentIndex = -1;
     let minTimeDiff = Infinity;
 
-    exam.classes[className].students.forEach((student: any, index: number) => {
-      const studentStartTimeMinutes = parseTimeToMinutes(student.examStartTime);
-      const timeDiff = studentStartTimeMinutes - brakeStartTimeMinutes;
-      if (timeDiff >= 0 && timeDiff < minTimeDiff) {
-        minTimeDiff = timeDiff;
-        closestStudentIndex = index;
+    exam.classes[className].students.forEach(
+      (student: Student, index: number) => {
+        const studentStartTimeMinutes = parseTimeToMinutes(student.examStartTime);
+        const timeDiff = studentStartTimeMinutes - brakeStartTimeMinutes;
+        if (timeDiff >= 0 && timeDiff < minTimeDiff) {
+          minTimeDiff = timeDiff;
+          closestStudentIndex = index;
+        }
       }
-    });
+    );
 
     if (closestStudentIndex !== -1 && isBreakActive === true) {
       let accumulatedBreakMinutes = 0;
@@ -117,7 +126,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
         i < exam.classes[className].students.length;
         i++
       ) {
-        const student = exam.classes[className].students[i];
+        const student: Student = exam.classes[className].students[i];
         if (!student) continue;
 
         const currentStartTimeMinutes = parseTimeToMinutes(
@@ -160,12 +169,16 @@ export async function POST(req: NextRequest, res: NextResponse) {
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
+    let errorMessage = "Failed to submit/update brake time to MongoDB and update student times.";
+    if (error instanceof Error) {
+      errorMessage += ` Error: ${error.message}`;
+    } else {
+      errorMessage += ` Unknown error: ${String(error)}`;
+    }
     return NextResponse.json(
       {
-        message:
-          "Failed to submit/update brake time to MongoDB and update student times.",
-        error: error.message,
+        message: errorMessage,
       },
       { status: 500 }
     );
