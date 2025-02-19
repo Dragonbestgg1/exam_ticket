@@ -482,6 +482,8 @@ export default function HomePage() {
                                 onNextStudent={handleNextStudent}
                                 examStartTime={firstStudent?.examStartTime}
                                 currentTime={headerCurrentTime}
+                                examName={selectedExam}
+                                className={selectedClass}
                             />
                         </div>
                     </>

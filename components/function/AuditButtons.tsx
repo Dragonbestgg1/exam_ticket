@@ -13,9 +13,13 @@ interface AuditButtonsProps {
     onNextStudent: () => void;
     examStartTime: string | null | undefined;
     currentTime: string;
+    examName: string;
+    className: string;
 }
 
-const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousStudent, onNextStudent, examStartTime, currentTime }) => {
+const AuditButtons: React.FC<AuditButtonsProps> = ({
+    onStart, onEnd, onPreviousStudent, onNextStudent, examStartTime, currentTime, examName, className
+}) => {
     const leftArrowWrapperRef = useRef<HTMLSpanElement | null>(null);
     const rightArrowWrapperRef = useRef<HTMLSpanElement | null>(null);
     const [isStartActive, setIsStartActive] = useState<boolean>(false);
@@ -23,6 +27,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
     const [isMobile, setIsMobile] = useState(false);
     const [startDisabled, setStartDisabled] = useState<boolean>(false);
     const [selectedBrakeInterval, setSelectedBrakeInterval] = useState<string>('');
+    const [isBreakActive, setIsBreakActive] = useState<boolean>(false);
 
     const timeIntervals: number[] = [];
     for (let i = 5; i <= 60; i += 5) {
@@ -125,14 +130,57 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
 
     const handleBrakeIntervalChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedBrakeInterval(event.target.value);
-        console.log("Selected Brake Interval Changed:", event.target.value); // ADD THIS LINE
+        console.log("Selected Brake Interval Changed:", event.target.value);
     };
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    // In your AuditButtons component
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        // Access the selected brake interval from the state or form data
-        console.log("Selected Brake Interval:", selectedBrakeInterval);
-        // You can perform further actions here like submitting the form data
+
+        if (!selectedBrakeInterval) {
+            alert("Please select a brake interval.");
+            return;
+        }
+
+        const brakeMinutes = parseInt(selectedBrakeInterval, 10);
+        const currentTimeHHMM = getCurrentTimeHHMM();
+        const brakeEndTime = new Date(new Date().getTime() + brakeMinutes * 60 * 1000);
+        const brakeEndTimeHHMM = `${String(brakeEndTime.getHours()).padStart(2, '0')}:${String(brakeEndTime.getMinutes()).padStart(2, '0')}`;
+
+
+        try {
+            const response = await fetch('/api/brake', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    brakeMinutes: brakeMinutes,
+                    startTime: currentTimeHHMM,
+                    endTime: brakeEndTimeHHMM,
+                    isBreakActive: true,
+                    examName: examName, // Send examName
+                    className: className, // Send className
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                const errorMessage = errorData?.message || `Failed to submit brake time. Status: ${response.status}`;
+                throw new Error(errorMessage);
+            }
+
+            const successData = await response.json();
+            console.log("API Success:", successData.message);
+            setIsBreakActive(true);
+            alert(`Brake submitted successfully! Brake ends at ${brakeEndTimeHHMM}`);
+            setSelectedBrakeInterval('');
+
+
+        } catch (error: any) {
+            console.error("Error submitting brake time via API:", error);
+            alert(`Failed to submit brake time: ${error.message}`);
+        }
     };
 
 
@@ -179,8 +227,9 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({ onStart, onEnd, onPreviousS
                             </option>
                         ))}
                     </select>
-                     <button className={`${style.submitButton}`} type="submit">Pieteikt</button>
+                    <button className={`${style.submitButton}`} type="submit">Pieteikt</button>
                 </form>
+                {isBreakActive && <p>Break is active!</p>}
             </div>
         </div>
     )
