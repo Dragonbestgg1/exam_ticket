@@ -324,36 +324,6 @@ export default function HomePage() {
     // Data Fetching and Student Selection Functions (useEffect for Data Fetch, updateFirstStudent, handlePreviousStudent, handleNextStudent, fetchFilteredData, fetchData)
     // =========================
 
-    useEffect(() => {
-        const fetchInitialSelection = async () => {
-            try {
-                const response = await fetch('/api/exam/current-selection');
-                if (response.ok) {
-                    const selectionData = await response.json();
-                    if (selectionData && selectionData.documentId) {
-                        console.log("useEffect (Initial Load): Fetched current exam selection:", selectionData);
-                        setSelectedDocumentId(selectionData.documentId); // Set selectedDocumentId from persisted selection
-                        if (selectionData.selectedClass) {
-                            setSelectedClass(selectionData.selectedClass); // Set selectedClass if available
-                        }
-                    } else {
-                        console.log("useEffect (Initial Load): No current exam selection found in settings.");
-                        fetchData(); // If no selection, load all data (or your default behavior)
-                    }
-                } else {
-                    console.error("useEffect (Initial Load): Error fetching current exam selection:", response.status, response.statusText);
-                    fetchData(); // If error fetching selection, fallback to loading all data
-                }
-            } catch (error: unknown) {
-                console.error("useEffect (Initial Load): Exception fetching current exam selection:", error);
-                fetchData(); // On exception, fallback to loading all data
-            }
-        };
-
-        fetchInitialSelection(); // Call the function to fetch initial selection
-
-    }, []);
-
     const updateFirstStudent = useCallback((data: StructuredData | null) => {
         if (data) {
             const classNames = Object.keys(data);
@@ -501,10 +471,41 @@ export default function HomePage() {
         }
     }, [updateFirstStudent]);
 
+
+    useEffect(() => {
+        const fetchInitialSelection = async () => {
+            try {
+                const response = await fetch('/api/exam/current-selection');
+                if (response.ok) {
+                    const selectionData = await response.json();
+                    if (selectionData && selectionData.documentId) {
+                        console.log("useEffect (Initial Load): Fetched current exam selection:", selectionData);
+                        setSelectedDocumentId(selectionData.documentId); // Set selectedDocumentId from persisted selection
+                        if (selectionData.selectedClass) {
+                            setSelectedClass(selectionData.selectedClass); // Set selectedClass if available
+                        }
+                    } else {
+                        console.log("useEffect (Initial Load): No current exam selection found in settings.");
+                        fetchData(); // If no selection, load all data (or your default behavior)
+                    }
+                } else {
+                    console.error("useEffect (Initial Load): Error fetching current exam selection:", response.status, response.statusText);
+                    fetchData(); // If error fetching selection, fallback to loading all data
+                }
+            } catch (error: unknown) {
+                console.error("useEffect (Initial Load): Exception fetching current exam selection:", error);
+                fetchData(); // On exception, fallback to loading all data
+            }
+        };
+
+        fetchInitialSelection(); // Call the function to fetch initial selection
+
+    }, [fetchData]);
+
     useEffect(() => {
         if (selectedDocumentId) {
             console.log("useEffect: selectedDocumentId changed to:", selectedDocumentId);
-            fetchData(selectedDocumentId); // Fetch data for the specific documentId
+            fetchData(selectedDocumentId);
         } else {
             console.log("useEffect: selectedDocumentId is null/empty, fetching all initial data.");
             fetchData();
