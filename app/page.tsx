@@ -322,7 +322,6 @@ export default function HomePage() {
         const fetchInitialSelection = async () => {
             try {
                 const response = await fetch('/api/exam/current-selection');
-                console.log("useEffect (Initial Load): Starting fetchInitialSelection...");
                 if (response.ok) {
                     const selectionData = await response.json();
                     if (selectionData && selectionData.documentId) {
@@ -503,9 +502,7 @@ export default function HomePage() {
             fetchData(selectedDocumentId); // Fetch data for the specific documentId
         } else {
             console.log("useEffect: selectedDocumentId is null/empty, fetching all initial data.");
-            // fetchData();
-            setMongoData(null); // Optionally, clear mongoData when no documentId selected
-            updateFirstStudent(null);
+            fetchData();
         }
     }, [selectedDocumentId, fetchData]);
 
