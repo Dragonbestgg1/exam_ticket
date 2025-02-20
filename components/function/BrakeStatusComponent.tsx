@@ -12,7 +12,6 @@ interface BrakeStatusComponentProps {
 
 interface PusherBrakeEventData {
     isBrakeActive: boolean;
-    // Add other properties from your Pusher data if needed
 }
 
 const BrakeStatusComponent: React.FC<BrakeStatusComponentProps> = ({ itemId, channelName, eventName, onBrakeStatusChange }) => {
@@ -20,14 +19,10 @@ const BrakeStatusComponent: React.FC<BrakeStatusComponentProps> = ({ itemId, cha
     const pusherClient = usePusher();
 
     useEffect(() => {
-        if (!pusherClient) {
-            console.log("BrakeStatusComponent: pusherClient is null, exiting useEffect");
-            return;
-        }
 
         const channel = pusherClient.subscribe(channelName as string);
 
-        channel.bind(eventName, async (data: PusherBrakeEventData) => { // Type the data
+        channel.bind(eventName, async (data: PusherBrakeEventData) => {
             try {
                 const response = await fetch(`/api/getEndTime?itemId=${itemId}`);
                 if (!response.ok) {
@@ -73,15 +68,13 @@ const BrakeStatusComponent: React.FC<BrakeStatusComponentProps> = ({ itemId, cha
 
         return () => {
             channel.unbind_all();
-            channel.unsubscribe(); // Call unsubscribe
+            channel.unsubscribe();
         };
     }, [pusherClient, itemId, channelName, eventName, onBrakeStatusChange]);
 
 
     return (
-        <div>
-            Brake Status: {isBrakeActive ? "Active" : "Inactive"}
-        </div>
+        <></>
     );
 };
 

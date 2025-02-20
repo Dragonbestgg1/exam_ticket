@@ -2,7 +2,7 @@
 
 import style from '@/styles/ui/monitor.module.css'
 import { useState, useEffect } from 'react';
-import { usePusher } from '@/app/providers'; // Import the usePusher hook
+import { usePusher } from '@/app/providers';
 
 interface MonitorProps {
     startTime: string;
@@ -22,8 +22,8 @@ interface BreakStatusData {
 
 const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extraTime, studentName, documentId, studentUUID }) => {
     const [extraTimeDisplay, setExtraTimeDisplay] = useState('none');
-    const [isBrakeActive, setIsBrakeActive] = useState(false); // State for brake status
-    const pusherClient = usePusher(); // Get the Pusher instance
+    const [isBrakeActive, setIsBrakeActive] = useState(false);
+    const pusherClient = usePusher();
 
     useEffect(() => {
         if (extraTime && extraTime !== "00:00:00" && !extraTime.startsWith("-")) {
@@ -38,27 +38,18 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
             const channelName = `exam-break-updates`;
             const eventName = 'break-status-changed';
 
-            console.log("Monitor: Subscribing to channel:", channelName, "for documentId:", documentId, "and studentUUID:", studentUUID);
-
             const channel = pusherClient.subscribe(channelName);
 
-            channel.bind(eventName, (data: BreakStatusData) => { // Use the interface
-                console.log("Monitor: Pusher event 'break-status-changed' RECEIVED:", data);
+            channel.bind(eventName, (data: BreakStatusData) => {
                 if (data && data.documentId === documentId && data.studentUUID === studentUUID) {
-                    console.log("Monitor: Event is for THIS document and student.");
                     setIsBrakeActive(data.isBreakActive);
-                } else {
-                    console.log("Monitor: Pusher event for DIFFERENT document or student, ignoring.");
                 }
             });
 
             return () => {
                 channel.unbind_all();
                 pusherClient.unsubscribe(channelName);
-                console.log("Monitor: Unsubscribed from channel:", channelName);
             };
-        } else {
-            console.log("Monitor: pusherClient, documentId or studentUUID is missing. Subscription NOT initiated.");
         }
     }, [pusherClient, documentId, studentUUID]);
 
