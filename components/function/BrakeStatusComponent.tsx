@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePusher } from '@/app/providers';
 
 interface BrakeStatusComponentProps {
@@ -12,15 +12,22 @@ interface BrakeStatusComponentProps {
 
 interface PusherBrakeEventData {
     isBrakeActive: boolean;
+    // Add other properties from your Pusher data if needed
 }
 
 const BrakeStatusComponent: React.FC<BrakeStatusComponentProps> = ({ itemId, channelName, eventName, onBrakeStatusChange }) => {
+    const [isBrakeActive, setIsBrakeActive] = useState(false);
     const pusherClient = usePusher();
 
     useEffect(() => {
+        if (!pusherClient) {
+            console.log("BrakeStatusComponent: pusherClient is null, exiting useEffect");
+            return;
+        }
+
         const channel = pusherClient.subscribe(channelName as string);
 
-        channel.bind(eventName, async (data: PusherBrakeEventData) => {
+        channel.bind(eventName, async (data: PusherBrakeEventData) => { // Type the data
             try {
                 const response = await fetch(`/api/getEndTime?itemId=${itemId}`);
                 if (!response.ok) {
@@ -56,7 +63,8 @@ const BrakeStatusComponent: React.FC<BrakeStatusComponentProps> = ({ itemId, cha
                     newBrakeActiveState = data.isBrakeActive;
                 }
 
-                onBrakeStatusChange(newBrakeActiveState); // Directly call onBrakeStatusChange
+                setIsBrakeActive(newBrakeActiveState);
+                onBrakeStatusChange(newBrakeActiveState);
 
             } catch (error) {
                 console.error('BrakeStatusComponent: Error fetching endTime:', error);
@@ -65,12 +73,15 @@ const BrakeStatusComponent: React.FC<BrakeStatusComponentProps> = ({ itemId, cha
 
         return () => {
             channel.unbind_all();
-            channel.unsubscribe();
+            channel.unsubscribe(); // Call unsubscribe
         };
-    }, [pusherClient, itemId, channelName, eventName, onBrakeStatusChange]); // Removed setIsBrakeActive from dependency array
+    }, [pusherClient, itemId, channelName, eventName, onBrakeStatusChange]);
+
 
     return (
-        <></>
+        <div>
+            {isBrakeActive ? "" : ""}
+        </div>
     );
 };
 
