@@ -1,7 +1,6 @@
 // /api/exam/current-selection/route.ts
 import { NextResponse, NextRequest } from "next/server";
-import getMongoClientPromise from "@/app/lib/mongodb";
-import { ObjectId } from 'mongodb';
+import getMongoClientPromise from "@/app/lib/mongodb"; // Adjust path if necessary
 
 export async function GET(req: NextRequest) {
     if (req.method !== 'GET') {
@@ -11,45 +10,30 @@ export async function GET(req: NextRequest) {
     try {
         const mongoClientPromise = await getMongoClientPromise();
         const client = await mongoClientPromise;
-        const db = client.db("ExamTicket");
-        const settingsCollection = db.collection("settings");
-        const examsCollection = db.collection("exams"); // <-- ADD examsCollection access
+        const db = client.db("ExamTicket"); // Replace "ExamTicket" with your database name
+        const settingsCollection = db.collection("settings"); // Assuming a 'settings' collection
 
-        const currentSelectionSetting = await settingsCollection.findOne({ key: 'currentExamSelection' });
+        // Fetch the settings document (assuming you store current selection in a single doc)
+        const settingsDocument = await settingsCollection.findOne({ key: 'currentExamSelection' }); // Assuming you use a key to identify the settings doc
 
-        if (currentSelectionSetting && currentSelectionSetting.documentId) {
-            let examDocument;
-            try {
-                const documentObjectId = new ObjectId(currentSelectionSetting.documentId);
-                examDocument = await examsCollection.findOne({ _id: documentObjectId }); // Fetch exam document
-            } catch (objectIdError) {
-                console.error("Error creating ObjectId from documentId:", currentSelectionSetting.documentId, objectIdError);
-                return NextResponse.json({ message: "Invalid documentId format in settings." }, { status: 400 });
-            }
-
-            if (examDocument) {
-                return NextResponse.json({
-                    documentId: currentSelectionSetting.documentId,
-                    selectedClass: currentSelectionSetting.selectedClass,
-                    examName: examDocument.examName, // <-- INCLUDE examName from examDocument
-                    message: "Current exam and class selection retrieved."
-                }, { status: 200 });
-            } else {
-                return NextResponse.json({
+        if (settingsDocument && settingsDocument.documentId && settingsDocument.selectedClass) {
+            return NextResponse.json(
+                {
+                    documentId: settingsDocument.documentId,
+                    selectedClass: settingsDocument.selectedClass,
+                },
+                { status: 200 }
+            );
+        } else {
+            // No current selection found in settings
+            return NextResponse.json(
+                {
                     documentId: null,
                     selectedClass: null,
-                    examName: null, // No examName as document not found
-                    message: "Current exam document not found for persisted documentId."
-                }, { status: 404 }); // Or adjust status code as needed
-            }
-
-        } else {
-            return NextResponse.json({
-                documentId: null,
-                selectedClass: null,
-                examName: null, // No examName as no selection
-                message: "No current exam and class selection found."
-            }, { status: 200 }); // Or 200 to indicate no selection, not an error
+                    message: "No current exam and class selection found."
+                },
+                { status: 200 } // Still 200 OK, but indicating no selection
+            );
         }
 
     } catch (error: unknown) {
@@ -60,6 +44,9 @@ export async function GET(req: NextRequest) {
             errorMessage += ` Unknown error: ${String(error)}`;
         }
         console.error(errorMessage);
-        return NextResponse.json({ message: errorMessage }, { status: 500 });
+        return NextResponse.json(
+            { message: errorMessage },
+            { status: 500 }
+        );
     }
 }

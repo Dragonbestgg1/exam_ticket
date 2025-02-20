@@ -212,22 +212,35 @@ export default function HomePage() {
     };
 
     const handleBrakeStatusChange = (brakeActive: boolean) => {
+        console.log('YourPage: handleBrakeStatusChange called with:', brakeActive); // Log when callback is called!
         setIsBrakeActiveFromPusher(brakeActive);
     };
+
+    useEffect(() => {
+        console.log('YourPage: isBrakeActiveFromPusher state updated to:', isBrakeActiveFromPusher); // Log state updates!
+    }, [isBrakeActiveFromPusher]); // Effect to log state changes
+
+    useEffect(() => {
+        console.log('YourPage: Monitor component is rendering with isBrakeActive prop:', isBrakeActiveFromPusher); // Log prop passed to Monitor
+    }, [isBrakeActiveFromPusher]);
 
     // =========================
     // Pusher Exam Selection Synchronization (useEffect & handleExamSelectionChange) - **[ADDED SECTION]**
     // =========================
     useEffect(() => {
         if (pusherClient) {
-            const channelName = 'exam-updates';
+            const channelName = 'exam-updates'; // General exam updates channel
             const eventName = 'exam-changed';
+
+            console.log("HomePage: Subscribing to channel:", channelName);
             const channel = pusherClient.subscribe(channelName);
 
             channel.bind(eventName, (data: any) => {
+                console.log("HomePage: Pusher event 'exam-changed' RECEIVED:", data);
                 if (data && data.documentId) {
+                    console.log("HomePage: Received exam-changed event, new documentId:", data.documentId, "selectedClass:", data.selectedClass); // **[MODIFIED - Log selectedClass]**
                     setSelectedDocumentId(data.documentId);
-                    if (data.selectedClass) {
+                    if (data.selectedClass) { // **[ADDED] - Update selectedClass state if available in event data**
                         setSelectedClass(data.selectedClass);
                     }
                 }
@@ -236,13 +249,15 @@ export default function HomePage() {
             return () => {
                 channel.unbind_all();
                 pusherClient.unsubscribe(channelName);
+                console.log("HomePage: Unsubscribed from channel:", channelName);
             };
         }
     }, [pusherClient]);
 
 
-    const handleExamSelectionChange = (newDocumentId: string, currentSelectedClass: string) => {
+    const handleExamSelectionChange = (newDocumentId: string, currentSelectedClass: string) => { // **[MODIFIED] - Accept currentSelectedClass**
         setSelectedDocumentId(newDocumentId);
+        // Call API endpoint to broadcast exam selection change
         fetch('/api/exam/select', {
             method: 'POST',
             headers: {
@@ -291,10 +306,10 @@ export default function HomePage() {
 
     const handleClassChange = (className: string) => {
         setSelectedClass(className);
-        if (selectedDocumentId) {
-            handleExamSelectionChange(selectedDocumentId, className);
+        if (selectedDocumentId) { // **[MODIFIED] - Check if selectedDocumentId exists**
+            handleExamSelectionChange(selectedDocumentId, className); // **[MODIFIED] - Call broadcast with selectedClass**
         } else {
-            console.warn("No documentId available when class changed. Cannot broadcast class selection.");
+            console.warn("No documentId available when class changed. Cannot broadcast class selection."); // **[ADDED] - Warning if no documentId**
         }
     };
 
@@ -307,29 +322,31 @@ export default function HomePage() {
         const fetchInitialSelection = async () => {
             try {
                 const response = await fetch('/api/exam/current-selection');
+                console.log("useEffect (Initial Load): Starting fetchInitialSelection...");
                 if (response.ok) {
                     const selectionData = await response.json();
                     if (selectionData && selectionData.documentId) {
-                        setSelectedDocumentId(selectionData.documentId);
+                        console.log("useEffect (Initial Load): Fetched current exam selection:", selectionData);
+                        setSelectedDocumentId(selectionData.documentId); // Set selectedDocumentId from persisted selection
                         if (selectionData.selectedClass) {
-                            setSelectedClass(selectionData.selectedClass);
-                        }
-                        if (selectionData.examName) {
-                            setSelectedExam(selectionData.examName);
+                            setSelectedClass(selectionData.selectedClass); // Set selectedClass if available
                         }
                     } else {
-                        fetchData();
+                        console.log("useEffect (Initial Load): No current exam selection found in settings.");
+                        fetchData(); // If no selection, load all data (or your default behavior)
                     }
                 } else {
-                    fetchData();
+                    console.error("useEffect (Initial Load): Error fetching current exam selection:", response.status, response.statusText);
+                    fetchData(); // If error fetching selection, fallback to loading all data
                 }
             } catch (error: unknown) {
-                fetchData();
-            } finally {
-                console.log("useEffect (Initial Load - fetchInitialSelection): END");
+                console.error("useEffect (Initial Load): Exception fetching current exam selection:", error);
+                fetchData(); // On exception, fallback to loading all data
             }
         };
-        fetchInitialSelection();
+
+        fetchInitialSelection(); // Call the function to fetch initial selection
+
     }, []);
 
     const updateFirstStudent = useCallback((data: StructuredData | null) => {
@@ -390,7 +407,6 @@ export default function HomePage() {
             setMongoData(data);
             updateFirstStudent(data);
 
-
         } catch (error: unknown) {
             if (error instanceof Error && error.name === 'AbortError') {
                 setErrorLoadingData(new Error('Request timed out'));
@@ -403,12 +419,13 @@ export default function HomePage() {
             clearTimeout(timeoutId);
             setLoadingData(false);
         }
-    }, [updateFirstStudent, selectedExam, selectedClass]);
+    }, [updateFirstStudent]);
 
-    const fetchData = useCallback(async (documentId?: string | null) => {
+    const fetchData = useCallback(async (documentId?: string | null) => { // documentId is now optional
         setLoadingData(true);
         setErrorLoadingData(null);
         setTimeoutError(false);
+
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
             controller.abort();
@@ -417,44 +434,52 @@ export default function HomePage() {
 
         try {
             let mongoResponse;
-            if (documentId) {
+            if (documentId) { // **[CONDITION ADDED] - Fetch data for a specific documentId**
                 const examDataResponse = await fetch(`/api/exam/data?documentId=${documentId}`, { signal: controller.signal });
-                // ... (rest of your fetchData logic for documentId)
-                const examData = await examDataResponse.json(); // Parse JSON *inside* this block
+                if (!examDataResponse.ok) {
+                    throw new Error(`HTTP error! status: ${examDataResponse.status} - Exam Data for documentId: ${documentId}`);
+                }
+                const examData = await examDataResponse.json();
                 mongoResponse = { // Simulate mongoResponse structure for consistency
-                    ok: examDataResponse.ok,
-                    status: examDataResponse.status, // Add status for error checking
+                    ok: true, // Assuming success if examDataResponse is ok
                     json: async () => {
                         const structuredData: StructuredData = {};
                         if (examData && examData.exam) {
-                            structuredData[examData.exam.examName] = examData.exam;
+                            structuredData[examData.exam.examName] = examData.exam; // Structure it similarly to your existing mongoData
                         }
                         return structuredData;
                     }
                 };
 
-
-            } else {
+            } else { // **[ELSE CONDITION] - Fetch ALL mongo data (original fetchData behavior)**
                 mongoResponse = await fetch('/api/mongo-data', { signal: controller.signal });
+                if (!mongoResponse.ok) {
+                    throw new Error(`HTTP error! status: ${mongoResponse.status} - Mongo Data (All)`);
+                }
             }
 
 
             const examsResponse = await fetch('/api/exam', { signal: controller.signal });
+            if (!examsResponse.ok) {
+                throw new Error(`HTTP error! status: ${examsResponse.status} - Exams`);
+            }
             const examsData = await examsResponse.json();
             setExamOptions(examsData.examNames || []);
 
             const classesResponse = await fetch('/api/classes', { signal: controller.signal });
+            if (!classesResponse.ok) {
+                throw new Error(`HTTP error! status: ${classesResponse.status} - Classes`);
+            }
             const classesData = await classesResponse.json();
             setClassOptions(classesData.classNames || []);
 
-            if (mongoResponse && mongoResponse.ok) {
+
+            if (mongoResponse.ok) { // Process mongoResponse only if fetch was successful
                 const data: StructuredData = await mongoResponse.json();
                 setMongoData(data);
                 updateFirstStudent(data);
-            } else if (mongoResponse) {
-                throw new Error(`Mongo data response was not ok (status: ${mongoResponse.status})`);
             } else {
-                throw new Error("mongoResponse was unexpectedly undefined.");
+                throw new Error(`Mongo data response was not ok (status: ${mongoResponse.status})`); // Handle non-ok mongoResponse
             }
 
 
@@ -474,18 +499,18 @@ export default function HomePage() {
 
     useEffect(() => {
         if (selectedDocumentId) {
-            fetchData(selectedDocumentId);
+            console.log("useEffect: selectedDocumentId changed to:", selectedDocumentId);
+            fetchData(selectedDocumentId); // Fetch data for the specific documentId
         } else {
-            setMongoData(null);
+            console.log("useEffect: selectedDocumentId is null/empty, fetching all initial data.");
+            // fetchData();
+            setMongoData(null); // Optionally, clear mongoData when no documentId selected
             updateFirstStudent(null);
         }
     }, [selectedDocumentId, fetchData]);
 
-    useEffect(() => { // useEffect for fetchFilteredData
-        console.log("useEffect (fetchFilteredData): START - selectedExam, selectedClass:", selectedExam, selectedClass);
-        console.log("useEffect (fetchFilteredData): Current selectedExam:", selectedExam, "selectedClass:", selectedClass); // [ADDED LOG - check state values]
+    useEffect(() => {
         fetchFilteredData(selectedExam, selectedClass);
-        console.log("useEffect (fetchFilteredData): END - selectedExam, selectedClass:", selectedExam, selectedClass);
     }, [fetchFilteredData, selectedExam, selectedClass]);
 
 
@@ -583,6 +608,8 @@ export default function HomePage() {
     // =========================
     // JSX Rendering -  Organized by Component Usage and conditional rendering
     // =========================
+    {console.log("HomePage: Rendering Listing with mongoData:", mongoData)}
+    {console.dir(mongoData, { depth: null })}
     return (
         <div className={`${style.main}`}>
             <Header
@@ -614,7 +641,7 @@ export default function HomePage() {
                 isAuthenticated ? (
                     <>
                         <div className={`${style.content}`}>
-
+                            
                             <Listing
                                 filterText={filterText}
                                 initialRecordsData={mongoData}
