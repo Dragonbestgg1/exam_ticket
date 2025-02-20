@@ -148,7 +148,6 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
         const brakeEndTime = new Date(new Date().getTime() + brakeMinutes * 60 * 1000);
         const brakeEndTimeHHMM = `${String(brakeEndTime.getHours()).padStart(2, '0')}:${String(brakeEndTime.getMinutes()).padStart(2, '0')}`;
 
-
         try {
             const response = await fetch('/api/brake', {
                 method: 'POST',
@@ -162,8 +161,8 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
                     isBreakActive: true,
                     examName: examName,
                     className: className,
-                    documentId: documentId, // ExamDocument ObjectId
-                    studentUUID: firstStudent?._id, // Send student's UUID as studentUUID
+                    documentId: documentId,
+                    studentUUID: firstStudent?._id,
                 }),
             });
 
@@ -173,8 +172,8 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
                 throw new Error(errorMessage);
             }
 
-            await response.json();
-            setIsBreakActive(true);
+            const data = await response.json();
+            setIsBreakActive(data.isBreakActive);
             alert(`Brake submitted successfully! Brake ends at ${brakeEndTimeHHMM}`);
             setSelectedBrakeInterval('');
 

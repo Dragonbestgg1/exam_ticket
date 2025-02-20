@@ -1,7 +1,14 @@
 import { NextResponse, NextRequest } from "next/server";
 import getMongoClientPromise from "@/app/lib/mongodb";
-import { pusherServer } from '@/app/api/pusher';
 import { ObjectId } from 'mongodb';
+import Pusher from "pusher";
+
+const pusherServer = new Pusher({
+    appId: process.env.PUSHER_APP_ID!,
+    key: process.env.NEXT_PUBLIC_PUSHER_APP_KEY!,
+    secret: process.env.PUSHER_APP_SECRET!,
+    cluster: process.env.NEXT_PUBLIC_PUSHER_APP_CLUSTER!,
+});
 
 interface Student {
     _id: string;
@@ -23,6 +30,7 @@ const formatMinutesToTime = (minutes: number): string => {
     return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
 };
 
+
 export async function POST(req: NextRequest) {
     if (req.method !== 'POST') {
         return NextResponse.json({ message: 'Method Not Allowed' }, { status: 405 });
@@ -37,7 +45,7 @@ export async function POST(req: NextRequest) {
         examName,
         className,
         documentId,
-        studentUUID // Expecting studentUUID now!
+        studentUUID
     } = requestBody;
 
     if (!examName || !className || !documentId) {
@@ -57,7 +65,6 @@ export async function POST(req: NextRequest) {
         );
     }
 
-
     try {
         const mongoClientPromise = await getMongoClientPromise();
         const client = await mongoClientPromise;
@@ -69,11 +76,11 @@ export async function POST(req: NextRequest) {
             brakeMinutes,
             startTime,
             endTime,
-            isBreakActive: true, // Always set to true when brake is submitted
+            isBreakActive: true, // Initially active
             examName,
             className,
-            documentId: documentId, // Store documentId for reference
-            studentUUID: studentUUID, // Store studentUUID
+            documentId: documentId,
+            studentUUID: studentUUID,
             timestamp: new Date(),
         };
 
@@ -84,15 +91,15 @@ export async function POST(req: NextRequest) {
         }
 
 
-        // --- Pusher Event Triggering (No changes needed here) ---
+        // --- Pusher Event Triggering (Activate Brake) ---
         pusherServer.trigger('exam-break-updates', 'break-status-changed', {
             documentId: documentId,
             isBreakActive: true,
+            studentUUID: studentUUID
         });
         // -----------------------------
 
-
-        const exam = await examsCollection.findOne({ _id: new ObjectId(documentId) }); // Find Exam by ExamDocument ObjectId
+        const exam = await examsCollection.findOne({ _id: new ObjectId(documentId) });
 
         if (
             !exam ||
@@ -124,7 +131,7 @@ export async function POST(req: NextRequest) {
             }
         );
 
-        if (closestStudentIndex !== -1 && isBreakActive === true) {
+        if (closestStudentIndex !== -1 && isBreakActive === true) { // isBreakActive check is redundant here now, always true at this point
             let accumulatedBreakMinutes = 0;
             for (
                 let i = closestStudentIndex;
@@ -172,6 +179,49 @@ export async function POST(req: NextRequest) {
                 );
             }
         }
+
+        // --- Timer-based Brake Deactivation Logic ---
+        const brakeEndTime = endTime; // Brake end time in "HH:mm" format from request
+        const currentDateTime = new Date(); // Current Date and Time
+        const brakeEndDate = new Date(currentDateTime); // Create a Date object for brake end
+        const [endHour, endMinute] = brakeEndTime.split(':').map(Number);
+        brakeEndDate.setHours(endHour);
+        brakeEndDate.setMinutes(endMinute);
+        brakeEndDate.setSeconds(0);
+        brakeEndDate.setMilliseconds(0);
+
+        const timeDiff = brakeEndDate.getTime() - currentDateTime.getTime(); // Difference in milliseconds
+
+        if (timeDiff > 0) { // Only set timer if brake end time is in the future
+            setTimeout(async () => {
+                console.log(`Timer expired for brake deactivation for documentId: ${documentId}, studentUUID: ${studentUUID}`);
+
+                // Trigger Pusher event to deactivate brake
+                pusherServer.trigger('exam-break-updates', 'break-status-changed', {
+                    documentId: documentId,
+                    isBreakActive: false, // Set isBreakActive to false for deactivation
+                    studentUUID: studentUUID
+                });
+
+                // Optionally, update brake record in database to set isBreakActive: false
+                try {
+                    await brakesCollection.updateOne(
+                        { _id: brakeResult.insertedId },
+                        { $set: { isBreakActive: false } }
+                    );
+                    console.log(`Database brake record updated to isBreakActive: false for brakeId: ${brakeResult.insertedId}`);
+                } catch (dbError) {
+                    console.error("Error updating brake record with deactivation status:", dbError);
+                }
+
+
+            }, timeDiff); // Set timeout for the calculated time difference
+            console.log(`Brake deactivation timer set for ${brakeMinutes} minutes, ending at ${brakeEndTime}`);
+        } else {
+            console.log("Brake end time is in the past, not setting deactivation timer.");
+        }
+        // --- End Timer-based Deactivation Logic ---
+
 
         return NextResponse.json(
             {

@@ -16,6 +16,7 @@ export default function Listing({
     onClassChange
 }: ListingProps) {
 
+    console.log("Listing: Received initialRecordsData prop:", initialRecordsData);
     const initialRecords: ClassRecord[] = useMemo(() => {
         const classRecords: ClassRecord[] = [];
         if (initialRecordsData) {
