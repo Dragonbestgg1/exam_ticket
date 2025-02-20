@@ -131,39 +131,30 @@ export async function POST(req: NextRequest) {
             }
         );
 
-        if (closestStudentIndex !== -1 && isBreakActive === true) { // isBreakActive check is redundant here now, always true at this point
-            let accumulatedBreakMinutes = 0;
-            for (
-                let i = closestStudentIndex;
-                i < exam.classes[className].students.length;
-                i++
-            ) {
-                const student: Student = exam.classes[className].students[i];
+        if (closestStudentIndex !== -1 && isBreakActive) { // Simplified condition
+            let accumulatedBreakMinutes = 0; // Initialize outside the loop
+        
+            for (let i = closestStudentIndex; i < exam.classes[className].students.length; i++) {
+                const student: Student = exam.classes[className].students[i]; // student is also never reassigned
                 if (!student) continue;
-
-                const currentStartTimeMinutes = parseTimeToMinutes(
-                    student.examStartTime
-                );
+        
+                const currentStartTimeMinutes = parseTimeToMinutes(student.examStartTime);
                 const currentDurationMinutes = student.examDuration;
-
-                const newStartTimeMinutes =
-                    currentStartTimeMinutes +
-                    brakeDurationMinutes +
-                    accumulatedBreakMinutes;
+        
+                const newStartTimeMinutes = currentStartTimeMinutes + brakeDurationMinutes + accumulatedBreakMinutes;
                 const newEndTimeMinutes = newStartTimeMinutes + currentDurationMinutes;
-
+        
                 const newStartTime = formatMinutesToTime(newStartTimeMinutes);
                 const newEndTime = formatMinutesToTime(newEndTimeMinutes);
-
+        
                 exam.classes[className].students[i].examStartTime = newStartTime;
                 exam.classes[className].students[i].examEndTime = newEndTime;
-
-
+        
                 await examsCollection.updateOne(
                     {
                         examName: examName,
                         className: className,
-                        'classes.students._id': studentUUID, // Corrected query using studentUUID from requestBody
+                        'classes.students._id': studentUUID,
                     },
                     {
                         $set: {
@@ -172,11 +163,12 @@ export async function POST(req: NextRequest) {
                         },
                     },
                     {
-                        arrayFilters: [
-                            { 'studentEl._id': studentUUID } // Array filter using studentUUID from requestBody
-                        ]
+                        arrayFilters: [{ 'studentEl._id': studentUUID }],
                     }
                 );
+        
+                // Update accumulatedBreakMinutes for the next iteration.
+                accumulatedBreakMinutes += brakeDurationMinutes; // This line was missing.
             }
         }
 

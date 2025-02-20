@@ -102,6 +102,12 @@ export default function HomePage() {
         return () => clearInterval(timeUpdateIntervalId); // Cleanup on unmount
     }, []);
 
+    interface ExamUpdateData {
+        documentId: string;
+        selectedClass?: string; // Make selectedClass optional
+        // ... other properties of your data object
+      }
+
 
     // =========================
     // Monitor Component Functions (useEffect for Timer, handleStart, handleEnd)
@@ -235,16 +241,16 @@ export default function HomePage() {
             console.log("HomePage: Subscribing to channel:", channelName);
             const channel = pusherClient.subscribe(channelName);
 
-            channel.bind(eventName, (data: any) => {
+            channel.bind(eventName, (data: ExamUpdateData) => {
                 console.log("HomePage: Pusher event 'exam-changed' RECEIVED:", data);
                 if (data && data.documentId) {
-                    console.log("HomePage: Received exam-changed event, new documentId:", data.documentId, "selectedClass:", data.selectedClass); // **[MODIFIED - Log selectedClass]**
-                    setSelectedDocumentId(data.documentId);
-                    if (data.selectedClass) { // **[ADDED] - Update selectedClass state if available in event data**
-                        setSelectedClass(data.selectedClass);
-                    }
+                  console.log("HomePage: Received exam-changed event, new documentId:", data.documentId, "selectedClass:", data.selectedClass);
+                  setSelectedDocumentId(data.documentId);
+                  if (data.selectedClass) {
+                    setSelectedClass(data.selectedClass);
+                  }
                 }
-            });
+              });
 
             return () => {
                 channel.unbind_all();
@@ -306,7 +312,7 @@ export default function HomePage() {
 
     const handleClassChange = (className: string) => {
         setSelectedClass(className);
-        if (selectedDocumentId) { // **[MODIFIED] - Check if selectedDocumentId exists**
+        if (selectedDocumentId) {
             handleExamSelectionChange(selectedDocumentId, className); // **[MODIFIED] - Call broadcast with selectedClass**
         } else {
             console.warn("No documentId available when class changed. Cannot broadcast class selection."); // **[ADDED] - Warning if no documentId**
@@ -380,7 +386,6 @@ export default function HomePage() {
             setCurrentDocumentId(null);
         }
     }, []);
-
 
     const fetchFilteredData = useCallback(async (selectedExam: string, selectedClass: string) => {
         setLoadingData(true);

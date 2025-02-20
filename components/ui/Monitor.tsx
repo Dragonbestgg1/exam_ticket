@@ -1,4 +1,3 @@
-// Monitor.tsx
 "use client"
 
 import style from '@/styles/ui/monitor.module.css'
@@ -13,6 +12,12 @@ interface MonitorProps {
     studentName: string;
     documentId: string;
     studentUUID: string;
+}
+
+interface BreakStatusData {
+    documentId: string;
+    studentUUID: string;
+    isBreakActive: boolean;
 }
 
 const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extraTime, studentName, documentId, studentUUID }) => {
@@ -37,7 +42,7 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
 
             const channel = pusherClient.subscribe(channelName);
 
-            channel.bind(eventName, (data: any) => {
+            channel.bind(eventName, (data: BreakStatusData) => { // Use the interface
                 console.log("Monitor: Pusher event 'break-status-changed' RECEIVED:", data);
                 if (data && data.documentId === documentId && data.studentUUID === studentUUID) {
                     console.log("Monitor: Event is for THIS document and student.");

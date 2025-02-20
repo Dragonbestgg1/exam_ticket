@@ -10,6 +10,11 @@ interface BrakeStatusComponentProps {
     onBrakeStatusChange: (isBrakeActive: boolean) => void;
 }
 
+interface PusherBrakeEventData {
+    isBrakeActive: boolean;
+    // Add other properties from your Pusher data if needed
+}
+
 const BrakeStatusComponent: React.FC<BrakeStatusComponentProps> = ({ itemId, channelName, eventName, onBrakeStatusChange }) => {
     const [isBrakeActive, setIsBrakeActive] = useState(false);
     const pusherClient = usePusher();
@@ -19,9 +24,10 @@ const BrakeStatusComponent: React.FC<BrakeStatusComponentProps> = ({ itemId, cha
             console.log("BrakeStatusComponent: pusherClient is null, exiting useEffect");
             return;
         }
-        const channel = pusherClient.subscribe(channelName as string);
-        channel.bind(eventName, async (data: any) => {
 
+        const channel = pusherClient.subscribe(channelName as string);
+
+        channel.bind(eventName, async (data: PusherBrakeEventData) => { // Type the data
             try {
                 const response = await fetch(`/api/getEndTime?itemId=${itemId}`);
                 if (!response.ok) {
@@ -52,7 +58,6 @@ const BrakeStatusComponent: React.FC<BrakeStatusComponentProps> = ({ itemId, cha
                 const endTime = timeStringToDate(endTimeString);
                 const startTime = timeStringToDate(startTimeString);
 
-
                 let newBrakeActiveState = false;
                 if (currentTime < endTime && currentTime >= startTime) {
                     newBrakeActiveState = data.isBrakeActive;
@@ -68,12 +73,16 @@ const BrakeStatusComponent: React.FC<BrakeStatusComponentProps> = ({ itemId, cha
 
         return () => {
             channel.unbind_all();
-            channel.unsubscribe;
+            channel.unsubscribe(); // Call unsubscribe
         };
     }, [pusherClient, itemId, channelName, eventName, onBrakeStatusChange]);
 
 
-    return null;
+    return (
+        <div>
+            Brake Status: {isBrakeActive ? "Active" : "Inactive"}
+        </div>
+    );
 };
 
 export default BrakeStatusComponent;
