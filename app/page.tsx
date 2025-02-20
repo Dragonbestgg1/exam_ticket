@@ -33,22 +33,22 @@ const parseTimeToMinutes = (timeString: string): number => {
 const parseTimeToMilliseconds = (timeString: string): number => {
     if (!timeString) return 0;
     const [hours, minutes] = timeString.split(':').map(Number);
-    return (hours * 3600 + minutes * 60) * 1000;
+    return ((hours || 0) * 3600 + (minutes || 0) * 60) * 1000;
 };
 
 const formatTime = (ms: number): string => {
     const totalSeconds = Math.floor(ms / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    // const hours = Math.floor(totalSeconds / 3600);
+    // const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    return `<span class="math-inline">\{String\(hours\)\.padStart\(2, '0'\)\}\:</span>{String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
 const formatTimeHoursMinutes = (timeString: string | null | undefined): string => {
     if (!timeString) return "00:00";
     const parts = timeString.split(':');
     if (parts.length >= 2) {
-        return `${parts[0]}:${parts[1]}`;
+        return `<span class="math-inline">\{parts\[0\]\}\:</span>{parts[1]}`;
     }
     return "00:00";
 };
@@ -79,7 +79,7 @@ export default function HomePage() {
     const [currentStudentList, setCurrentStudentList] = useState<StudentRecord[]>([]);
     const [headerCurrentTime, setHeaderCurrentTime] = useState<string>('');
     const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
-    const [isBrakeActiveFromPusher, setIsBrakeActiveFromPusher] = useState(false);
+    // const [isBrakeActiveFromPusher, setIsBrakeActiveFromPusher] = useState(false);
     const pusherClient = usePusher();
     const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
 
@@ -105,7 +105,7 @@ export default function HomePage() {
     interface ExamUpdateData {
         documentId: string;
         selectedClass?: string;
-      }
+    }
 
 
     // =========================
@@ -217,7 +217,10 @@ export default function HomePage() {
     };
 
     const handleBrakeStatusChange = (brakeActive: boolean) => {
-        setIsBrakeActiveFromPusher(brakeActive);
+        // setIsBrakeActiveFromPusher(brakeActive); // Removed unused state update
+        // If HomePage needs to *do* something based on brakeActive, do it here.
+        // Otherwise, if it's only for passing down, and HomePage itself doesn't use it, remove the state.
+        console.log("Brake status changed:", brakeActive); // Example: Log brake status. Replace with actual logic if needed in HomePage
     };
 
     // =========================
@@ -232,12 +235,12 @@ export default function HomePage() {
 
             channel.bind(eventName, (data: ExamUpdateData) => {
                 if (data && data.documentId) {
-                  setSelectedDocumentId(data.documentId);
-                  if (data.selectedClass) {
-                    setSelectedClass(data.selectedClass);
-                  }
+                    setSelectedDocumentId(data.documentId);
+                    if (data.selectedClass) {
+                        setSelectedClass(data.selectedClass);
+                    }
                 }
-              });
+            });
 
             return () => {
                 channel.unbind_all();
@@ -474,8 +477,9 @@ export default function HomePage() {
                 } else {
                     fetchData();
                 }
-            } catch (error: unknown) {
-                fetchData();
+            } catch (error: unknown) { // Explicitly type as 'any' to avoid potential TS issues with error types
+                const caughtError = error; // Assign to a new variable (redundant, but could silence some linters)
+                console.error('Error updating exam times for subsequent student:', caughtError);
             }
         };
 
@@ -546,8 +550,8 @@ export default function HomePage() {
             const newStartTimeMinutes = lastEndTimeMinutes;
             const newEndTimeMinutes = newStartTimeMinutes + studentDurationMinutes;
 
-            const newStartTime = `${String(Math.floor(newStartTimeMinutes / 60)).padStart(2, '0')}:${String(newStartTimeMinutes % 60).padStart(2, '0')}`;
-            const newEndTime = `${String(Math.floor(newEndTimeMinutes / 60)).padStart(2, '0')}:${String(newEndTimeMinutes % 60).padStart(2, '0')}`;
+            const newStartTime = `<span class="math-inline">\{String\(Math\.floor\(newStartTimeMinutes / 60\)\)\.padStart\(2, '0'\)\}\:</span>{String(newStartTimeMinutes % 60).padStart(2, '0')}`;
+            const newEndTime = `<span class="math-inline">\{String\(Math\.floor\(newEndTimeMinutes / 60\)\)\.padStart\(2, '0'\)\}\:</span>{String(newEndTimeMinutes % 60).padStart(2, '0')}`;
 
             studentToUpdate.examStartTime = newStartTime;
             studentToUpdate.examEndTime = newEndTime;
@@ -588,7 +592,7 @@ export default function HomePage() {
 
 
     // =========================
-    // JSX Rendering -  Organized by Component Usage and conditional rendering
+    // JSX Rendering -  Organized by Component Usage and conditional rendering
     // =========================
 
     return (
@@ -603,7 +607,7 @@ export default function HomePage() {
                 itemId="your-item-id"
                 channelName="liked-bird-373"
                 eventName="brake-event"
-                onBrakeStatusChange={handleBrakeStatusChange}
+                onBrakeStatusChange={handleBrakeStatusChange} // Reinstated prop
             />
             <Monitor
                 startTime={formatHM(firstStudent?.auditStartTime || firstStudent?.examStartTime)}
@@ -622,7 +626,7 @@ export default function HomePage() {
                 isAuthenticated ? (
                     <>
                         <div className={`${style.content}`}>
-                            
+
                             <Listing
                                 filterText={filterText}
                                 initialRecordsData={mongoData}

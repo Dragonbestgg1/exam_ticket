@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { usePusher } from '@/app/providers';
 
 interface BrakeStatusComponentProps {
@@ -15,11 +15,9 @@ interface PusherBrakeEventData {
 }
 
 const BrakeStatusComponent: React.FC<BrakeStatusComponentProps> = ({ itemId, channelName, eventName, onBrakeStatusChange }) => {
-    const [isBrakeActive, setIsBrakeActive] = useState(false);
     const pusherClient = usePusher();
 
     useEffect(() => {
-
         const channel = pusherClient.subscribe(channelName as string);
 
         channel.bind(eventName, async (data: PusherBrakeEventData) => {
@@ -58,8 +56,7 @@ const BrakeStatusComponent: React.FC<BrakeStatusComponentProps> = ({ itemId, cha
                     newBrakeActiveState = data.isBrakeActive;
                 }
 
-                setIsBrakeActive(newBrakeActiveState);
-                onBrakeStatusChange(newBrakeActiveState);
+                onBrakeStatusChange(newBrakeActiveState); // Directly call onBrakeStatusChange
 
             } catch (error) {
                 console.error('BrakeStatusComponent: Error fetching endTime:', error);
@@ -70,8 +67,7 @@ const BrakeStatusComponent: React.FC<BrakeStatusComponentProps> = ({ itemId, cha
             channel.unbind_all();
             channel.unsubscribe();
         };
-    }, [pusherClient, itemId, channelName, eventName, onBrakeStatusChange]);
-
+    }, [pusherClient, itemId, channelName, eventName, onBrakeStatusChange]); // Removed setIsBrakeActive from dependency array
 
     return (
         <></>
