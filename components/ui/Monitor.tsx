@@ -12,6 +12,7 @@ interface MonitorProps {
     studentName: string;
     documentId: string;
     studentUUID: string;
+    isBrakeActive?: boolean;
 }
 
 interface BreakStatusData {
