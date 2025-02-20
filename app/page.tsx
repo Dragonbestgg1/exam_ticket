@@ -137,7 +137,6 @@ export default function HomePage() {
         };
     }, [isRunning, timerStartTime, firstStudent?.examEndTime, firstStudent?.examStartTime]);
 
-
     const handleStart = async (startTime: string) => {
         setIsRunning(true);
         setTimerStartTime(Date.now());
@@ -350,7 +349,7 @@ export default function HomePage() {
         const timeoutId = setTimeout(() => {
             controller.abort();
             setTimeoutError(true);
-        }, 5000);
+        }, 8000);
 
         try {
             const queryString = new URLSearchParams({
@@ -389,7 +388,7 @@ export default function HomePage() {
         const timeoutId = setTimeout(() => {
             controller.abort();
             setTimeoutError(true);
-        }, 5000);
+        }, 8000);
 
         try {
             let mongoResponse;
@@ -417,7 +416,6 @@ export default function HomePage() {
                 }
             }
 
-
             const examsResponse = await fetch('/api/exam', { signal: controller.signal });
             if (!examsResponse.ok) {
                 throw new Error(`HTTP error! status: ${examsResponse.status} - Exams`);
@@ -432,7 +430,6 @@ export default function HomePage() {
             const classesData = await classesResponse.json();
             setClassOptions(classesData.classNames || []);
 
-
             if (mongoResponse.ok) {
                 const data: StructuredData = await mongoResponse.json();
                 setMongoData(data);
@@ -440,7 +437,6 @@ export default function HomePage() {
             } else {
                 throw new Error(`Mongo data response was not ok (status: ${mongoResponse.status})`);
             }
-
 
         } catch (error: unknown) {
             if (error instanceof Error && error.name === 'AbortError') {
@@ -455,7 +451,6 @@ export default function HomePage() {
             setLoadingData(false);
         }
     }, [updateFirstStudent]);
-
 
     useEffect(() => {
         const fetchInitialSelection = async () => {
@@ -474,8 +469,8 @@ export default function HomePage() {
                 } else {
                     fetchData();
                 }
-            } catch (error: unknown) { // Explicitly type as 'any' to avoid potential TS issues with error types
-                const caughtError = error; // Assign to a new variable (redundant, but could silence some linters)
+            } catch (error: unknown) {
+                const caughtError = error;
                 console.error('Error updating exam times for subsequent student:', caughtError);
             }
         };
@@ -496,7 +491,6 @@ export default function HomePage() {
         fetchFilteredData(selectedExam, selectedClass);
     }, [fetchFilteredData, selectedExam, selectedClass]);
 
-
     const handlePreviousStudent = () => {
         if (currentStudentList.length > 0) {
             const newIndex = currentStudentIndex > 0 ? currentStudentIndex - 1 : currentStudentList.length - 1;
@@ -514,7 +508,6 @@ export default function HomePage() {
             setCurrentDocumentId(currentStudentList[newIndex]._id?.toString() || null);
         }
     };
-
 
     // =========================
     // Time Update Functions (updateSubsequentStudentTimes) - Used by AuditButtons and potentially data updates
@@ -586,7 +579,6 @@ export default function HomePage() {
             setMongoData(updatedMongoData);
         }
     };
-
 
     // =========================
     // JSX Rendering -  Organized by Component Usage and conditional rendering
