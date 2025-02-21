@@ -87,9 +87,10 @@
     padding: 10px;
     font-size: 16px;
     width: 90%;
-    font-weight: bolder;
+    font-weight: 600;
     border-bottom: 3px solid white;
     border-top: 1px solid white;
+    box-shadow: 1px 3px 3px;
     border-radius: 10px;
     align-items: center;
     justify-content: center;
@@ -118,6 +119,7 @@
 
     .ul {
         width: 100%;
+        margin: 0px;
     }
 
     .list {
@@ -136,6 +138,12 @@
         gap: 30px;
     }
     .list{
-        width: 120%;
+        width: 85%;
+    }
+}
+
+@media screen and (width: 1024px) {
+    .list{
+        width: 100%;
     }
 }

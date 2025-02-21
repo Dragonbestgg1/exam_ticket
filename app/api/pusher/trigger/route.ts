@@ -29,8 +29,13 @@ export async function POST(request: Request) {
         await pusher.trigger(channel, event, data);
 
         return NextResponse.json({ message: 'Event triggered successfully' }, { status: 200 });
-    } catch (error: any) {
-        console.error('Pusher trigger error:', error.message || error);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.error('Pusher trigger error:', error.message);
+        } else {
+            console.error('Unknown error:', error);
+        }
+
         return NextResponse.json({ error: 'Failed to trigger Pusher event' }, { status: 500 });
     }
 }

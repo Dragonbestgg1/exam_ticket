@@ -246,47 +246,6 @@ export default function HomePage() {
         }
     }, [pusherClient]);
 
-
-    const handleExamSelectionChange = async (newDocumentId: string, currentSelectedClass: string) => {
-        setSelectedDocumentId(newDocumentId); // Update local state immediately
-        setSelectedClass(currentSelectedClass); // Update local state immediately
-    
-        try {
-            const response = await fetch('/api/exam/select', { // Call API to persist and broadcast
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    documentId: newDocumentId,
-                    selectedClass: currentSelectedClass,
-                }),
-            });
-    
-            if (!response.ok) {
-                console.error("Failed to send exam selection to server.");
-            }
-        } catch (error) {
-            console.error("Error sending exam selection to server:", error);
-        }
-    };
-
-    // =========================
-    // Helper function - getExamDocumentIdByName
-    // =========================
-    function getExamDocumentIdByName(examName: string, mongoData: StructuredData | null): string | null {
-        if (!mongoData) return null;
-
-        for (const className in mongoData) {
-            if (mongoData[className]) {
-                if (mongoData[className].examName === examName) {
-                    return mongoData[className]._id?.toString() || null;
-                }
-            }
-        }
-        return null;
-    }
-
     // =========================
     // Listing Component Functions (handleFilterChange, handleExamChange, handleClassChange)
     // =========================

@@ -140,3 +140,45 @@
     font-weight: bolder;
     text-align: center;
 }
+
+@media screen and (max-width: 768px) {
+    .main{
+        height: auto;
+        gap: 30px;
+    }
+    .form{
+        flex-direction: column;
+        width: 80%;
+        height: auto;
+    }
+    .mainInfo{
+        flex-direction: column;
+        height: auto;
+        gap: 20px;
+    }
+    .input{
+        flex-direction: column;
+        width: 100%;
+        height: auto;
+        gap: 10px;
+    }
+}
+
+@media screen and (min-width: 768px) and (max-width:1024px) {
+    .form{
+        flex-direction: column;
+        width: 80%;
+        height: auto;
+    }
+    .mainInfo{
+        flex-direction: row;
+        flex-wrap: wrap;
+        height: auto;
+    }
+    .input{
+        flex-direction: column;
+        width: 45%;
+        height: auto;
+        gap: 10px;
+    }
+}

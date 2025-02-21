@@ -8,6 +8,7 @@ import { GiExitDoor, GiEntryDoor } from "react-icons/gi";
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { PiExam } from "react-icons/pi";
+import { FiMenu, FiX } from "react-icons/fi"; // Import icons for burger menu
 
 interface HeaderProps {
     onFilterChange?: (filterText: string) => void;
@@ -20,6 +21,23 @@ export default function Header({ onFilterChange, isFilterActive }: HeaderProps) 
     const [filterInputActive, setFilterInputActive] = useState(false);
     const { data: session } = useSession();
     const [filterInput, setFilterInput] = useState('');
+    const [isMobile, setIsMobile] = useState(false); // State to track mobile view
+    const [isBurgerMenuOpen, setIsBurgerMenuOpen] = useState(false); // State to control burger menu
+
+
+    useEffect(() => {
+        const checkScreenWidth = () => {
+            setIsMobile(window.innerWidth <= 768);
+        };
+
+        checkScreenWidth(); // Check on initial load
+        window.addEventListener('resize', checkScreenWidth); // Check on resize
+
+        return () => {
+            window.removeEventListener('resize', checkScreenWidth); // Cleanup listener
+        };
+    }, []);
+
 
     useEffect(() => {
 
@@ -38,16 +56,16 @@ export default function Header({ onFilterChange, isFilterActive }: HeaderProps) 
     useEffect(() => {
         const updateTime = () => {
             const now = new Date();
-    
+
             const hours = now.toLocaleTimeString([], { hour: '2-digit', hour12: false });
             const minutes = String(now.getMinutes()).padStart(2, '0');
             setHeaderTimeHours(hours);
             setHeaderTimeMinutes(minutes);
         };
-    
+
         updateTime();
         const timeUpdateIntervalId = setInterval(updateTime, 1000);
-    
+
         return () => {
             clearInterval(timeUpdateIntervalId);
         };
@@ -70,23 +88,55 @@ export default function Header({ onFilterChange, isFilterActive }: HeaderProps) 
         }
     };
 
+    const toggleBurgerMenu = () => {
+        setIsBurgerMenuOpen(!isBurgerMenuOpen);
+    };
+
     return (
         <header className={`${style.header}`}>
-            <nav className={`${style.nav}`}>
-                <Link href="/" className={`${style.home}`}><IoHome /></Link>
-                {session && session.user ? (
+            <div className={style.navContainer}>
+                {isMobile ? (
                     <>
-                        <button onClick={handleLogout} className={`${style.auth} ${style.logoutButton}`}>
-                            <GiEntryDoor />
+                        <button className={style.burgerMenuIcon} onClick={toggleBurgerMenu}>
+                            {isBurgerMenuOpen ? <FiX /> : <FiMenu />}
                         </button>
-                        <Link href="/addExam" className={`${style.exam}`}><PiExam /></Link>
+                        {isBurgerMenuOpen && (
+                            <div className={style.burgerMenu}>
+                                <Link href="/" className={`${style.burgerMenuLink}`} onClick={() => setIsBurgerMenuOpen(false)}><IoHome /></Link>
+                                {session && session.user ? (
+                                    <>
+                                        <button onClick={() => { handleLogout(); setIsBurgerMenuOpen(false); }} className={`${style.burgerMenuLink} ${style.auth} ${style.logoutButton}`}>
+                                            <GiEntryDoor />
+                                        </button>
+                                        <Link href="/addExam" className={`${style.burgerMenuLink} ${style.exam}`} onClick={() => setIsBurgerMenuOpen(false)}><PiExam /></Link>
+                                    </>
+                                ) : (
+                                    <Link href="/auth" className={`${style.burgerMenuLink} ${style.auth}`} onClick={() => setIsBurgerMenuOpen(false)}>
+                                        <GiExitDoor />
+                                    </Link>
+                                )}
+                            </div>
+                        )}
                     </>
                 ) : (
-                    <Link href="/auth" className={`${style.auth}`}>
-                        <GiExitDoor />
-                    </Link>
+                    <nav className={`${style.nav}`}>
+                        <Link href="/" className={`${style.home}`}><IoHome /></Link>
+                        {session && session.user ? (
+                            <>
+                                <button onClick={handleLogout} className={`${style.auth} ${style.logoutButton}`}>
+                                    <GiEntryDoor />
+                                </button>
+                                <Link href="/addExam" className={`${style.exam}`}><PiExam /></Link>
+                            </>
+                        ) : (
+                            <Link href="/auth" className={`${style.auth}`}>
+                                <GiExitDoor />
+                            </Link>
+                        )}
+                    </nav>
                 )}
-            </nav>
+            </div>
+
             <h1 className={`${style.title}`}>
                 <span>{headerTimeHours}</span>
                 <span style={{ visibility: colonVisible ? 'visible' : 'hidden' }}>:</span>

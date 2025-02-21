@@ -1,6 +1,6 @@
 .header {
     position: sticky;
-    width: 100%;
+    width: 100vw;
     height: 10vh;
     background: rgb(99, 9, 121);
     background: linear-gradient(130deg,
@@ -12,9 +12,19 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    padding: 25px;
+    padding: 15px;
     border-bottom-right-radius: 15px;
     border-bottom-left-radius: 15px;
+    position: relative;
+}
+
+.navContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 30px;
+    width: 15vw;
 }
 
 /* #region nav */
@@ -24,7 +34,8 @@
     align-items: center;
     justify-content: flex-start;
     gap: 30px;
-    width: 15vw;
+    width: 100%;
+    padding-left: 10px;
 }
 
 .auth {
@@ -57,7 +68,7 @@
     letter-spacing: 5px;
 
     position: absolute;
-    left: 50%;         
+    left: 50%;
     transform: translateX(-50%);
 }
 
@@ -105,9 +116,79 @@
 
 /* #endregion */
 
+/* #region Burger Menu */
+.burgerMenuIcon {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 10px; /* Add some padding for better touch area */
+}
+
+.burgerMenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: rgba(99, 9, 121, 0.9);
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    border-bottom-right-radius: 15px;
+    border-bottom-left-radius: 15px;
+    z-index: 10;
+}
+
+.burgerMenuLink {
+    color: white;
+    text-decoration: none;
+    font-size: 1.2rem;
+    padding: 10px;
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.burgerMenuLink.auth,
+.burgerMenuLink.exam {
+    font-size: 1.2rem;
+}
+
+.burgerMenuLink.logoutButton {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    text-align: center;
+    width: 100%;
+    padding: 10px;
+}
+
+/* #endregion */
+
+
 @media screen and (max-width: 768px) {
+    .navContainer {
+        width: auto;
+        justify-content: flex-start;
+    }
+    .nav {
+        display: none;
+    }
     .search {
         display: none;
+    }
+    .title {
+        font-size: 24px;
+    }
+    .header {
+        padding: 15px;
+        height: auto;
+        flex-direction: row;
+        align-items: center;
     }
 }
 
@@ -116,6 +197,7 @@
         width: 20vw;
         gap: 50px;
     }
+
     .search{
         display: flex;
         width: 25vw;
