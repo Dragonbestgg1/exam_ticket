@@ -215,9 +215,9 @@ export default function HomePage() {
         }
     };
 
-    const handleBrakeStatusChange = (brakeActive: boolean) => {
+    const handleBrakeStatusChange = useCallback((brakeActive: boolean) => {
         setIsBrakeActiveFromPusher(brakeActive);
-    };
+    }, [setIsBrakeActiveFromPusher]); // Dependency on the state setter
 
     // =========================
     // Pusher Exam Selection Synchronization
