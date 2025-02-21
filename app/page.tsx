@@ -101,11 +101,8 @@ export default function HomePage() {
             const now = new Date();
             setHeaderCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         };
-
         updateTime();
-
         const timeUpdateIntervalId = setInterval(updateTime, 1000);
-
         return () => clearInterval(timeUpdateIntervalId);
     }, []);
 
@@ -128,7 +125,6 @@ export default function HomePage() {
                     const calculatedEndTimeMsForStudent = parseTimeToMilliseconds(firstStudent.examEndTime);
                     const calculatedStartTimeMsForStudent = parseTimeToMilliseconds(firstStudent.examStartTime);
                     const totalTimeMs = calculatedStartTimeMsForStudent + currentElapsedTime;
-
                     setExtraTime(Math.max(0, totalTimeMs - calculatedEndTimeMsForStudent));
                 }
             }, 1000);
@@ -150,12 +146,9 @@ export default function HomePage() {
         setTimerStartTime(Date.now());
         setElapsedTime(0);
         setExtraTime(0);
-
         if (!firstStudent) return;
-
         const updatedStudent = { ...firstStudent, auditStartTime: startTime };
         setFirstStudent(updatedStudent);
-
         try {
             const response = await fetch('/api/student/updateAuditTime', {
                 method: 'POST',
@@ -169,13 +162,10 @@ export default function HomePage() {
                     className: selectedClass,
                 }),
             });
-
             if (!response.ok) {
                 console.error('Failed to update audit start time in DB');
             }
-
             await updateSubsequentStudentTimes(updatedStudent, true, selectedExam, selectedClass);
-
         } catch (error) {
             console.error('Error updating audit start time:', error);
         }
@@ -187,15 +177,11 @@ export default function HomePage() {
             clearInterval(timerInterval.current);
         }
         timerInterval.current = null;
-
         if (!firstStudent) return;
-
         const updatedStudent = { ...firstStudent, auditEndTime: endTime };
         setFirstStudent(updatedStudent);
-
         const formattedElapsedTime = formatTime(elapsedTime);
         const formattedExtraTime = formatTime(extraTime);
-
         try {
             const response = await fetch('/api/student/updateAuditTime', {
                 method: 'POST',
@@ -211,13 +197,10 @@ export default function HomePage() {
                     auditExtraTime: formattedExtraTime,
                 }),
             });
-
             if (!response.ok) {
                 console.error('Failed to update audit end time in DB');
             }
-
             await updateSubsequentStudentTimes(updatedStudent, false, selectedExam, selectedClass);
-
         } catch (error) {
             console.error('Error updating audit end time:', error);
         }
@@ -236,9 +219,7 @@ export default function HomePage() {
         if (pusherClient) {
             const channelName = 'exam-updates';
             const eventName = 'exam-changed';
-
             const channel = pusherClient.subscribe(channelName);
-
             channel.bind(eventName, (data: ExamUpdateData) => {
                 if (data && data.documentId) {
                     setSelectedDocumentId(data.documentId);
@@ -248,7 +229,6 @@ export default function HomePage() {
                     console.log("Exam selection updated via Pusher:", data);
                 }
             });
-
             return () => {
                 channel.unbind_all();
                 pusherClient.unsubscribe(channelName);
@@ -290,7 +270,6 @@ export default function HomePage() {
                 const firstClass = data[firstClassName];
                 if (firstClass && firstClass.students && firstClass.students.length > 0) {
                     const firstStudentData = firstClass.students[0];
-
                     setCurrentStudentList(firstClass.students);
                     setCurrentStudentIndex(0);
                     setFirstStudent(firstStudentData);
@@ -324,17 +303,14 @@ export default function HomePage() {
         setLoadingData(true);
         setErrorLoadingData(null);
         setTimeoutError(false);
-
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
             controller.abort();
             setTimeoutError(true);
         }, 8000);
-
         try {
             let mongoResponse;
             let queryString = "";
-
             if (documentId) {
                 const examDataResponse = await fetch(`/api/exam/data?documentId=${documentId}`, { signal: controller.signal });
                 if (!examDataResponse.ok) {
@@ -351,7 +327,6 @@ export default function HomePage() {
                         return structuredData;
                     }
                 };
-
             } else {
                 if (examFilter || classFilter) {
                     queryString = new URLSearchParams({
@@ -362,27 +337,22 @@ export default function HomePage() {
                 } else {
                     mongoResponse = await fetch('/api/mongo-data', { signal: controller.signal });
                 }
-
-
                 if (!mongoResponse.ok) {
                     throw new Error(`HTTP error! status: ${mongoResponse.status} - Mongo Data (Filtered or All)`);
                 }
             }
-
             const examsResponse = await fetch('/api/exam', { signal: controller.signal });
             if (!examsResponse.ok) {
                 throw new Error(`HTTP error! status: ${examsResponse.status} - Exams`);
             }
             const examsData = await examsResponse.json();
             setExamOptions(examsData.examNames || []);
-
             const classesResponse = await fetch('/api/classes', { signal: controller.signal });
             if (!classesResponse.ok) {
                 throw new Error(`HTTP error! status: ${classesResponse.status} - Classes`);
             }
             const classesData = await classesResponse.json();
             setClassOptions(classesData.classNames || []);
-
             if (mongoResponse.ok) {
                 const data: StructuredData = await mongoResponse.json();
                 setMongoData(data);
@@ -390,7 +360,6 @@ export default function HomePage() {
             } else {
                 throw new Error(`Mongo data response was not ok (status: ${mongoResponse.status})`);
             }
-
         } catch (error: unknown) {
             if (error instanceof Error && error.name === 'AbortError') {
                 setErrorLoadingData(new Error('Request timed out'));
@@ -431,9 +400,7 @@ export default function HomePage() {
                 console.error('Error updating exam times for subsequent student:', caughtError);
             }
         };
-
         fetchInitialSelection();
-
     }, [fetchData]);
 
     useEffect(() => {
@@ -469,7 +436,6 @@ export default function HomePage() {
 
     const updateSubsequentStudentTimes = async (currentStudent: StudentRecord, isStart: boolean, examName: string, className: string) => {
         if (!mongoData || !currentStudentList) return;
-
         const currentIndex = currentStudentIndex;
         const currentAuditEndTime = currentStudent.auditEndTime || currentStudent.examEndTime;
         let currentExamEndTimeParsed = 0;
@@ -478,30 +444,23 @@ export default function HomePage() {
         } else {
             currentExamEndTimeParsed = parseTimeToMinutes(currentStudent.examEndTime);
         }
-
         let lastEndTimeMinutes = currentExamEndTimeParsed;
         const updatedStudentList = [...currentStudentList];
         const studentsToUpdate = [];
-
         for (let i = currentIndex + 1; i < updatedStudentList.length; i++) {
             const studentToUpdate = updatedStudentList[i];
             if (!studentToUpdate) continue;
-
             const studentDurationMinutes = parseInt(studentToUpdate.examDuration, 10);
             if (isNaN(studentDurationMinutes)) {
                 continue;
             }
-
             const newStartTimeMinutes = lastEndTimeMinutes;
             const newEndTimeMinutes = newStartTimeMinutes + studentDurationMinutes;
-
             const newStartTime = `${String(Math.floor(newStartTimeMinutes / 60)).padStart(2, '0')}:${String(newStartTimeMinutes % 60).padStart(2, '0')}`;
             const newEndTime = `${String(Math.floor(newEndTimeMinutes / 60)).padStart(2, '0')}:${String(newEndTimeMinutes % 60).padStart(2, '0')}`;
-
             studentToUpdate.examStartTime = newStartTime;
             studentToUpdate.examEndTime = newEndTime;
             updatedStudentList[i] = studentToUpdate;
-
             studentsToUpdate.push({
                 studentId: studentToUpdate._id,
                 examStartTime: newStartTime,
@@ -509,11 +468,9 @@ export default function HomePage() {
                 examName: examName,
                 className: className
             });
-
             lastEndTimeMinutes = newEndTimeMinutes;
         }
         setCurrentStudentList(updatedStudentList);
-
         if (studentsToUpdate.length > 0) {
             try {
                 const response = await fetch('/api/student/batchUpdateExamTime', {
@@ -523,7 +480,6 @@ export default function HomePage() {
                     },
                     body: JSON.stringify({ updates: studentsToUpdate }),
                 });
-
                 if (!response.ok) {
                     console.error(`Failed to update exam times for multiple students in DB (batch update)`);
                 }
@@ -531,7 +487,6 @@ export default function HomePage() {
                 console.error('Error updating exam times for subsequent students (batch update):', error);
             }
         }
-
         const updatedMongoData = { ...mongoData };
         if (firstStudent && updatedMongoData && updatedMongoData[selectedClass]) {
             updatedMongoData[selectedClass].students = updatedStudentList;
