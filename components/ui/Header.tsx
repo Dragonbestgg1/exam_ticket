@@ -8,7 +8,7 @@ import { GiExitDoor, GiEntryDoor } from "react-icons/gi";
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { PiExam } from "react-icons/pi";
-import { FiMenu, FiX } from "react-icons/fi"; // Import icons for burger menu
+import { FiMenu, FiX } from "react-icons/fi";
 
 interface HeaderProps {
     onFilterChange?: (filterText: string) => void;
@@ -21,20 +21,19 @@ export default function Header({ onFilterChange, isFilterActive }: HeaderProps) 
     const [filterInputActive, setFilterInputActive] = useState(false);
     const { data: session } = useSession();
     const [filterInput, setFilterInput] = useState('');
-    const [isMobile, setIsMobile] = useState(false); // State to track mobile view
-    const [isBurgerMenuOpen, setIsBurgerMenuOpen] = useState(false); // State to control burger menu
-
+    const [isMobile, setIsMobile] = useState(false);
+    const [isBurgerMenuOpen, setIsBurgerMenuOpen] = useState(false);
 
     useEffect(() => {
         const checkScreenWidth = () => {
             setIsMobile(window.innerWidth <= 768);
         };
 
-        checkScreenWidth(); // Check on initial load
-        window.addEventListener('resize', checkScreenWidth); // Check on resize
+        checkScreenWidth();
+        window.addEventListener('resize', checkScreenWidth);
 
         return () => {
-            window.removeEventListener('resize', checkScreenWidth); // Cleanup listener
+            window.removeEventListener('resize', checkScreenWidth);
         };
     }, []);
 

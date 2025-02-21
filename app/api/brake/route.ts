@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
             brakeMinutes,
             startTime,
             endTime,
-            isBreakActive: true, // Initially active
+            isBreakActive: true,
             examName,
             className,
             documentId: documentId,
@@ -90,14 +90,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Failed to save brake time to database.' }, { status: 500 });
         }
 
-
-        // --- Pusher Event Triggering (Activate Brake) ---
         pusherServer.trigger('exam-break-updates', 'break-status-changed', {
             documentId: documentId,
             isBreakActive: true,
             studentUUID: studentUUID
         });
-        // -----------------------------
 
         const exam = await examsCollection.findOne({ _id: new ObjectId(documentId) });
 
@@ -131,11 +128,11 @@ export async function POST(req: NextRequest) {
             }
         );
 
-        if (closestStudentIndex !== -1 && isBreakActive) { // Simplified condition
-            let accumulatedBreakMinutes = 0; // Initialize outside the loop
+        if (closestStudentIndex !== -1 && isBreakActive) {
+            let accumulatedBreakMinutes = 0;
         
             for (let i = closestStudentIndex; i < exam.classes[className].students.length; i++) {
-                const student: Student = exam.classes[className].students[i]; // student is also never reassigned
+                const student: Student = exam.classes[className].students[i];
                 if (!student) continue;
         
                 const currentStartTimeMinutes = parseTimeToMinutes(student.examStartTime);
@@ -166,36 +163,32 @@ export async function POST(req: NextRequest) {
                         arrayFilters: [{ 'studentEl._id': studentUUID }],
                     }
                 );
-        
-                // Update accumulatedBreakMinutes for the next iteration.
-                accumulatedBreakMinutes += brakeDurationMinutes; // This line was missing.
+
+                accumulatedBreakMinutes += brakeDurationMinutes;
             }
         }
 
-        // --- Timer-based Brake Deactivation Logic ---
-        const brakeEndTime = endTime; // Brake end time in "HH:mm" format from request
-        const currentDateTime = new Date(); // Current Date and Time
-        const brakeEndDate = new Date(currentDateTime); // Create a Date object for brake end
+        const brakeEndTime = endTime;
+        const currentDateTime = new Date();
+        const brakeEndDate = new Date(currentDateTime);
         const [endHour, endMinute] = brakeEndTime.split(':').map(Number);
         brakeEndDate.setHours(endHour);
         brakeEndDate.setMinutes(endMinute);
         brakeEndDate.setSeconds(0);
         brakeEndDate.setMilliseconds(0);
 
-        const timeDiff = brakeEndDate.getTime() - currentDateTime.getTime(); // Difference in milliseconds
+        const timeDiff = brakeEndDate.getTime() - currentDateTime.getTime();
 
-        if (timeDiff > 0) { // Only set timer if brake end time is in the future
+        if (timeDiff > 0) {
             setTimeout(async () => {
                 console.log(`Timer expired for brake deactivation for documentId: ${documentId}, studentUUID: ${studentUUID}`);
 
-                // Trigger Pusher event to deactivate brake
                 pusherServer.trigger('exam-break-updates', 'break-status-changed', {
                     documentId: documentId,
-                    isBreakActive: false, // Set isBreakActive to false for deactivation
+                    isBreakActive: false,
                     studentUUID: studentUUID
                 });
 
-                // Optionally, update brake record in database to set isBreakActive: false
                 try {
                     await brakesCollection.updateOne(
                         { _id: brakeResult.insertedId },
@@ -207,13 +200,11 @@ export async function POST(req: NextRequest) {
                 }
 
 
-            }, timeDiff); // Set timeout for the calculated time difference
+            }, timeDiff);
             console.log(`Brake deactivation timer set for ${brakeMinutes} minutes, ending at ${brakeEndTime}`);
         } else {
             console.log("Brake end time is in the past, not setting deactivation timer.");
         }
-        // --- End Timer-based Deactivation Logic ---
-
 
         return NextResponse.json(
             {

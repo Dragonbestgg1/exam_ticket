@@ -1,11 +1,9 @@
-// providers.tsx
 "use client";
 import { SessionProvider } from "next-auth/react";
 import { useEffect, useState, createContext, useContext } from 'react';
-import PusherClient from 'pusher-js'; // Import PusherClient explicitly
+import PusherClient from 'pusher-js';
 
-// Create a context to make Pusher instance available
-export const PusherContext = createContext<PusherClient | null>(null); // Use PusherClient type
+export const PusherContext = createContext<PusherClient | null>(null);
 
 interface PusherProviderProps {
     children: React.ReactNode;

@@ -1,4 +1,3 @@
-// /api/exam/select/route.ts
 import { NextResponse, NextRequest } from "next/server";
 import Pusher from "pusher";
 import getMongoClientPromise from "@/app/lib/mongodb";
@@ -23,12 +22,10 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        // --- Pusher Event Triggering (Exam Changed) ---
-        pusherServer.trigger('exam-updates', 'exam-changed', { // Broadcast to 'exam-updates' channel
-            documentId: documentId,      // Include documentId
-            selectedClass: selectedClass, // **[MODIFIED] - Include selectedClass in event data**
+        pusherServer.trigger('exam-updates', 'exam-changed', {
+            documentId: documentId,
+            selectedClass: selectedClass,
         });
-        // -----------------------------
         const mongoClientPromise = await getMongoClientPromise();
         const client = await mongoClientPromise;
         const db = client.db("ExamTicket");
@@ -42,15 +39,15 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(
             {
-                message: "Exam and class selection broadcast via Pusher.", // **[MODIFIED] - Message updated**
+                message: "Exam and class selection broadcast via Pusher.",
                 selectedDocumentId: documentId,
-                broadcastedClass: selectedClass, // **[MODIFIED] - Include broadcastedClass in response**
+                broadcastedClass: selectedClass,
             },
             { status: 200 }
         );
 
     } catch (error: unknown) {
-        let errorMessage = "Failed to broadcast exam and class selection via Pusher."; // **[MODIFIED] - Error message updated**
+        let errorMessage = "Failed to broadcast exam and class selection via Pusher.";
         if (error instanceof Error) {
             errorMessage += ` Error: ${error.message}`;
         } else {

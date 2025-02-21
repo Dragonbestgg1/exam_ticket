@@ -2,9 +2,8 @@ import { NextResponse, NextRequest } from "next/server";
 import getMongoClientPromise from "@/app/lib/mongodb";
 import { ObjectId } from 'mongodb';
 
-// Define the type for each update object
 interface ExamTimeUpdate {
-    studentId: string; // studentId should be a string because it will be used with ObjectId
+    studentId: string;
     examStartTime: Date;
     examEndTime: Date;
     examName: string;
@@ -18,7 +17,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const requestBody = await req.json();
-        const updates: ExamTimeUpdate[] = requestBody.updates; // Using the ExamTimeUpdate type
+        const updates: ExamTimeUpdate[] = requestBody.updates;
 
         if (!updates || updates.length === 0) {
             return NextResponse.json({ message: "Invalid or empty updates array in request body" }, { status: 400 });
@@ -31,7 +30,7 @@ export async function POST(req: NextRequest) {
 
         const bulkOperations = updates.map((update) => ({
             updateOne: {
-                filter: { _id: new ObjectId(update.studentId) }, // Filter by studentId
+                filter: { _id: new ObjectId(update.studentId) },
                 update: {
                     $set: {
                         examStartTime: update.examStartTime,

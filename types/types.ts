@@ -1,4 +1,3 @@
-// app/types/structured-data.ts
 import { ObjectId } from "mongodb";
 
 export interface StudentRecord {

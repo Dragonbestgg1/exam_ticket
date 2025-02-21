@@ -82,37 +82,25 @@
     background-color: #4169E1;
 }
 
-/* addExam.module.css */
-
 .inputWithDropdown {
     position: relative;
-    /* Needed for absolute positioning of dropdown */
 }
 
 .dropdown {
     position: absolute;
     top: 100%;
-    /* Position dropdown below the input */
     left: 0;
     right: 0;
     background-color: white;
     border: 1px solid #ccc;
     border-top: none;
-    /* Remove top border to connect visually to input */
     margin-top: -1px;
-    /* Adjust margin to visually connect to input border */
     border-radius: 0 0 4px 4px;
-    /* Rounded corners at the bottom */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    /* Subtle shadow */
     z-index: 10;
-    /* Ensure dropdown is above other content */
     overflow-y: auto;
-    /* Scroll if dropdown is long */
     max-height: 200px;
-    /* Limit dropdown height with scroll */
     list-style: none;
-    /* Remove default list styling */
     padding: 0;
     margin: 0;
 }
@@ -124,7 +112,6 @@
 
 .dropdown li:hover {
     background-color: #f0f0f0;
-    /* Hover background color */
 }
 
 .dropdown.error {

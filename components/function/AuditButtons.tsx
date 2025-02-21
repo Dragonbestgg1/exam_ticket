@@ -235,7 +235,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
                     </select>
                     <button className={`${style.submitButton}`} type="submit">Pieteikt</button>
                 </form>
-                {isBreakActive && <p>Break is active!</p>}
+                {isBreakActive}
             </div>
         </div>
     )
