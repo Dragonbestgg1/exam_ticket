@@ -220,24 +220,25 @@ export default function HomePage() {
     };
 
     // =========================
-    // Pusher Exam Selection Synchronization (useEffect & handleExamSelectionChange) - **[ADDED SECTION]**
+    // Pusher Exam Selection Synchronization
     // =========================
     useEffect(() => {
         if (pusherClient) {
             const channelName = 'exam-updates';
             const eventName = 'exam-changed';
-
+    
             const channel = pusherClient.subscribe(channelName);
-
+    
             channel.bind(eventName, (data: ExamUpdateData) => {
                 if (data && data.documentId) {
-                    setSelectedDocumentId(data.documentId);
+                    setSelectedDocumentId(data.documentId); // Update state from Pusher event
                     if (data.selectedClass) {
-                        setSelectedClass(data.selectedClass);
+                        setSelectedClass(data.selectedClass); // Update state from Pusher event
                     }
+                    console.log("Exam selection updated via Pusher:", data); // Optional log for debugging
                 }
             });
-
+    
             return () => {
                 channel.unbind_all();
                 pusherClient.unsubscribe(channelName);
@@ -246,18 +247,28 @@ export default function HomePage() {
     }, [pusherClient]);
 
 
-    const handleExamSelectionChange = (newDocumentId: string, currentSelectedClass: string) => {
-        setSelectedDocumentId(newDocumentId);
-        fetch('/api/exam/select', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                documentId: newDocumentId,
-                selectedClass: currentSelectedClass,
-            }),
-        });
+    const handleExamSelectionChange = async (newDocumentId: string, currentSelectedClass: string) => {
+        setSelectedDocumentId(newDocumentId); // Update local state immediately
+        setSelectedClass(currentSelectedClass); // Update local state immediately
+    
+        try {
+            const response = await fetch('/api/exam/select', { // Call API to persist and broadcast
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    documentId: newDocumentId,
+                    selectedClass: currentSelectedClass,
+                }),
+            });
+    
+            if (!response.ok) {
+                console.error("Failed to send exam selection to server.");
+            }
+        } catch (error) {
+            console.error("Error sending exam selection to server:", error);
+        }
     };
 
     // =========================
@@ -286,21 +297,14 @@ export default function HomePage() {
 
     const handleExamChange = (exam: string) => {
         setSelectedExam(exam);
-        const examDocumentId = getExamDocumentIdByName(exam, mongoData);
-        if (examDocumentId) {
-            handleExamSelectionChange(examDocumentId, selectedClass);
-        } else {
-            console.warn("Could not find documentId for selected exam:", exam);
-        }
+        setSelectedDocumentId(null); // Clear selectedDocumentId when exam filter changes - important to trigger useEffect and fetchData with filters
+        fetchData(null, exam, selectedClass); // Call fetchData with exam filter, clear documentId
     };
-
+    
     const handleClassChange = (className: string) => {
         setSelectedClass(className);
-        if (selectedDocumentId) {
-            handleExamSelectionChange(selectedDocumentId, className);
-        } else {
-            console.warn("No documentId available when class changed. Cannot broadcast class selection.");
-        }
+        setSelectedDocumentId(null); // Clear selectedDocumentId when class filter changes - important to trigger useEffect and fetchData with filters
+        fetchData(null, selectedExam, className); // Call fetchData with class filter, clear documentId
     };
 
 
@@ -341,116 +345,138 @@ export default function HomePage() {
         }
     }, []);
 
-    const fetchFilteredData = useCallback(async (selectedExam: string, selectedClass: string) => {
-        setLoadingData(true);
-        setErrorLoadingData(null);
-        setTimeoutError(false);
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-            controller.abort();
-            setTimeoutError(true);
-        }, 8000);
+    // const fetchFilteredData = useCallback(async (selectedExam: string, selectedClass: string) => {
+    //     setLoadingData(true);
+    //     setErrorLoadingData(null);
+    //     setTimeoutError(false);
+    //     const controller = new AbortController();
+    //     const timeoutId = setTimeout(() => {
+    //         controller.abort();
+    //         setTimeoutError(true);
+    //     }, 8000);
 
-        try {
-            const queryString = new URLSearchParams({
-                exam: selectedExam,
-                class: selectedClass,
-            }).toString();
+    //     try {
+    //         const queryString = new URLSearchParams({
+    //             exam: selectedExam,
+    //             class: selectedClass,
+    //         }).toString();
 
-            const response = await fetch(`/api/filtered-mongo-data?${queryString}`, { signal: controller.signal });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status} - Filtered Mongo Data`);
+    //         const response = await fetch(`/api/filtered-mongo-data?${queryString}`, { signal: controller.signal });
+    //         if (!response.ok) {
+    //             throw new Error(`HTTP error! status: ${response.status} - Filtered Mongo Data`);
+    //         }
+    //         const data: StructuredData = await response.json();
+    //         setMongoData(data);
+    //         updateFirstStudent(data);
+
+    //     } catch (error: unknown) {
+    //         if (error instanceof Error && error.name === 'AbortError') {
+    //             setErrorLoadingData(new Error('Request timed out'));
+    //         } else if (error instanceof Error) {
+    //             setErrorLoadingData(error);
+    //         } else {
+    //             setErrorLoadingData(new Error('An unknown error occurred'));
+    //         }
+    //     } finally {
+    //         clearTimeout(timeoutId);
+    //         setLoadingData(false);
+    //     }
+    // }, [updateFirstStudent]);
+
+    // =========================
+// Data Fetching and Student Selection Functions (useEffect for Data Fetch, updateFirstStudent, handlePreviousStudent, handleNextStudent, fetchFilteredData, fetchData)
+// =========================
+
+const fetchData = useCallback(async (documentId?: string | null, examFilter?: string, classFilter?: string) => {
+    setLoadingData(true);
+    setErrorLoadingData(null);
+    setTimeoutError(false);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+        controller.abort();
+        setTimeoutError(true);
+    }, 8000);
+
+    try {
+        let mongoResponse;
+        let queryString = "";
+
+        if (documentId) {
+            const examDataResponse = await fetch(`/api/exam/data?documentId=${documentId}`, { signal: controller.signal });
+            if (!examDataResponse.ok) {
+                throw new Error(`HTTP error! status: ${examDataResponse.status} - Exam Data for documentId: ${documentId}`);
             }
-            const data: StructuredData = await response.json();
-            setMongoData(data);
-            updateFirstStudent(data);
-
-        } catch (error: unknown) {
-            if (error instanceof Error && error.name === 'AbortError') {
-                setErrorLoadingData(new Error('Request timed out'));
-            } else if (error instanceof Error) {
-                setErrorLoadingData(error);
-            } else {
-                setErrorLoadingData(new Error('An unknown error occurred'));
-            }
-        } finally {
-            clearTimeout(timeoutId);
-            setLoadingData(false);
-        }
-    }, [updateFirstStudent]);
-
-    const fetchData = useCallback(async (documentId?: string | null) => {
-        setLoadingData(true);
-        setErrorLoadingData(null);
-        setTimeoutError(false);
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-            controller.abort();
-            setTimeoutError(true);
-        }, 8000);
-
-        try {
-            let mongoResponse;
-            if (documentId) {
-                const examDataResponse = await fetch(`/api/exam/data?documentId=${documentId}`, { signal: controller.signal });
-                if (!examDataResponse.ok) {
-                    throw new Error(`HTTP error! status: ${examDataResponse.status} - Exam Data for documentId: ${documentId}`);
-                }
-                const examData = await examDataResponse.json();
-                mongoResponse = {
-                    ok: true,
-                    json: async () => {
-                        const structuredData: StructuredData = {};
-                        if (examData && examData.exam) {
-                            structuredData[examData.exam.examName] = examData.exam;
-                        }
-                        return structuredData;
+            const examData = await examDataResponse.json();
+            mongoResponse = {
+                ok: true,
+                json: async () => {
+                    const structuredData: StructuredData = {};
+                    if (examData && examData.exam) {
+                        structuredData[examData.exam.examName] = examData.exam;
                     }
-                };
+                    return structuredData;
+                }
+            };
 
+        } else {
+            if (examFilter || classFilter) {
+                queryString = new URLSearchParams({
+                    exam: examFilter || '',
+                    class: classFilter || '',
+                }).toString();
+                mongoResponse = await fetch(`/api/filtered-mongo-data?${queryString}`, { signal: controller.signal });
             } else {
                 mongoResponse = await fetch('/api/mongo-data', { signal: controller.signal });
-                if (!mongoResponse.ok) {
-                    throw new Error(`HTTP error! status: ${mongoResponse.status} - Mongo Data (All)`);
-                }
             }
 
-            const examsResponse = await fetch('/api/exam', { signal: controller.signal });
-            if (!examsResponse.ok) {
-                throw new Error(`HTTP error! status: ${examsResponse.status} - Exams`);
-            }
-            const examsData = await examsResponse.json();
-            setExamOptions(examsData.examNames || []);
 
-            const classesResponse = await fetch('/api/classes', { signal: controller.signal });
-            if (!classesResponse.ok) {
-                throw new Error(`HTTP error! status: ${classesResponse.status} - Classes`);
+            if (!mongoResponse.ok) {
+                throw new Error(`HTTP error! status: ${mongoResponse.status} - Mongo Data (Filtered or All)`);
             }
-            const classesData = await classesResponse.json();
-            setClassOptions(classesData.classNames || []);
-
-            if (mongoResponse.ok) {
-                const data: StructuredData = await mongoResponse.json();
-                setMongoData(data);
-                updateFirstStudent(data);
-            } else {
-                throw new Error(`Mongo data response was not ok (status: ${mongoResponse.status})`);
-            }
-
-        } catch (error: unknown) {
-            if (error instanceof Error && error.name === 'AbortError') {
-                setErrorLoadingData(new Error('Request timed out'));
-            } else if (error instanceof Error) {
-                setErrorLoadingData(error);
-            } else {
-                setErrorLoadingData(new Error('An unknown error occurred'));
-            }
-        } finally {
-            clearTimeout(timeoutId);
-            setLoadingData(false);
         }
-    }, [updateFirstStudent]);
+
+        const examsResponse = await fetch('/api/exam', { signal: controller.signal });
+        if (!examsResponse.ok) {
+            throw new Error(`HTTP error! status: ${examsResponse.status} - Exams`);
+        }
+        const examsData = await examsResponse.json();
+        setExamOptions(examsData.examNames || []);
+
+        const classesResponse = await fetch('/api/classes', { signal: controller.signal });
+        if (!classesResponse.ok) {
+            throw new Error(`HTTP error! status: ${classesResponse.status} - Classes`);
+        }
+        const classesData = await classesResponse.json();
+        setClassOptions(classesData.classNames || []);
+
+        if (mongoResponse.ok) {
+            const data: StructuredData = await mongoResponse.json();
+            setMongoData(data);
+            updateFirstStudent(data);
+        } else {
+            throw new Error(`Mongo data response was not ok (status: ${mongoResponse.status})`);
+        }
+
+    } catch (error: unknown) {
+        if (error instanceof Error && error.name === 'AbortError') {
+            setErrorLoadingData(new Error('Request timed out'));
+        } else if (error instanceof Error) {
+            setErrorLoadingData(error);
+        } else {
+            setErrorLoadingData(new Error('An unknown error occurred'));
+        }
+    } finally {
+        clearTimeout(timeoutId);
+        setLoadingData(false);
+    }
+}, [updateFirstStudent]);
+
+useEffect(() => {
+    fetchData(selectedDocumentId, selectedExam, selectedClass);
+}, [selectedDocumentId, fetchData, selectedExam, selectedClass]);
+
+
 
     useEffect(() => {
         const fetchInitialSelection = async () => {
@@ -487,9 +513,9 @@ export default function HomePage() {
         }
     }, [selectedDocumentId, fetchData]);
 
-    useEffect(() => {
-        fetchFilteredData(selectedExam, selectedClass);
-    }, [fetchFilteredData, selectedExam, selectedClass]);
+    // useEffect(() => {
+    //     fetchFilteredData(selectedExam, selectedClass);
+    // }, [fetchFilteredData, selectedExam, selectedClass]);
 
     const handlePreviousStudent = () => {
         if (currentStudentList.length > 0) {
@@ -527,6 +553,7 @@ export default function HomePage() {
 
         let lastEndTimeMinutes = currentExamEndTimeParsed;
         const updatedStudentList = [...currentStudentList];
+        const studentsToUpdate = []; // Batch updates
 
         for (let i = currentIndex + 1; i < updatedStudentList.length; i++) {
             const studentToUpdate = updatedStudentList[i];
@@ -547,31 +574,37 @@ export default function HomePage() {
             studentToUpdate.examEndTime = newEndTime;
             updatedStudentList[i] = studentToUpdate;
 
-            lastEndTimeMinutes = newEndTimeMinutes;
+            studentsToUpdate.push({ // Collect student updates for batch API call
+                studentId: studentToUpdate._id,
+                examStartTime: newStartTime,
+                examEndTime: newEndTime,
+                examName: examName,
+                className: className
+            });
 
+            lastEndTimeMinutes = newEndTimeMinutes;
+        }
+        setCurrentStudentList(updatedStudentList);
+
+
+        if (studentsToUpdate.length > 0) { // Perform batch update if there are students to update
             try {
-                const response = await fetch('/api/student/updateExamTime', {
+                const response = await fetch('/api/student/batchUpdateExamTime', { //  <-  New API endpoint for batch update
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        studentId: studentToUpdate._id,
-                        examStartTime: newStartTime,
-                        examEndTime: newEndTime,
-                        examName: examName,
-                        className: className
-                    }),
+                    body: JSON.stringify({ updates: studentsToUpdate }), // Send array of updates
                 });
 
                 if (!response.ok) {
-                    console.error(`Failed to update exam times for student ${studentToUpdate.name} in DB`);
+                    console.error(`Failed to update exam times for multiple students in DB (batch update)`);
                 }
             } catch (error) {
-                console.error('Error updating exam times for subsequent student:', error);
+                console.error('Error updating exam times for subsequent students (batch update):', error);
             }
         }
-        setCurrentStudentList(updatedStudentList);
+
 
         const updatedMongoData = { ...mongoData };
         if (firstStudent && updatedMongoData && updatedMongoData[selectedClass]) {

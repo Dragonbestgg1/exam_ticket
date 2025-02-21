@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     }
 
     const requestBody = await req.json();
-    const { documentId, selectedClass } = requestBody; // **[MODIFIED] - Expect 'selectedClass' in request body**
+    const { documentId, selectedClass } = requestBody;
 
     if (!documentId) {
         return NextResponse.json({ message: "Missing documentId" }, { status: 400 });
@@ -25,19 +25,19 @@ export async function POST(req: NextRequest) {
     try {
         // --- Pusher Event Triggering (Exam Changed) ---
         pusherServer.trigger('exam-updates', 'exam-changed', { // Broadcast to 'exam-updates' channel
-            documentId: documentId,     // Include documentId
+            documentId: documentId,      // Include documentId
             selectedClass: selectedClass, // **[MODIFIED] - Include selectedClass in event data**
         });
         // -----------------------------
-        const mongoClientPromise = await getMongoClientPromise(); // Get MongoDB client
+        const mongoClientPromise = await getMongoClientPromise();
         const client = await mongoClientPromise;
         const db = client.db("ExamTicket");
         const settingsCollection = db.collection("settings");
 
-        await settingsCollection.updateOne( // Use updateOne with upsert to create if not exists
-            { key: 'currentExamSelection' }, // Query to find the settings document
-            { $set: { documentId: documentId, selectedClass: selectedClass } }, // Update operation: set documentId and selectedClass
-            { upsert: true } // If no document with key 'currentExamSelection' exists, create a new one
+        await settingsCollection.updateOne(
+            { key: 'currentExamSelection' },
+            { $set: { documentId: documentId, selectedClass: selectedClass } },
+            { upsert: true }
         );
 
         return NextResponse.json(
