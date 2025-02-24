@@ -259,7 +259,7 @@ export default function HomePage() {
 
 
     // =========================
-    // Data Fetching and Student Selection Functions (useEffect for Data Fetch, updateFirstStudent, handlePreviousStudent, handleNextStudent, fetchFilteredData, fetchData)
+    // Data Fetching and Student Selection Functions (updateFirstStudent)
     // =========================
 
     const updateFirstStudent = useCallback((data: StructuredData | null) => {
@@ -296,7 +296,7 @@ export default function HomePage() {
 
 
     // =========================
-    // Data Fetching and Student Selection Functions (useEffect for Data Fetch, updateFirstStudent, handlePreviousStudent, handleNextStudent, fetchFilteredData, fetchData)
+    // Data Fetching and Student Selection Functions (useEffect for Data Fetch, updateFirstStudent, handlePreviousStudent, handleNextStudent, fetchData)
     // =========================
 
     const fetchData = useCallback(async (documentId?: string | null, examFilter?: string, classFilter?: string) => {
