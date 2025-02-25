@@ -58,7 +58,7 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
         <div className={`${style.main} ${isBrakeActive ? style.breakActive : ''}`}>
             <div className={`${style.monitor}`}>
                 {isBrakeActive ? (
-                    <div>
+                    <div className={`${style.breakDisplay}`}>
                         <h1 className={`${style.breakText}`}>On Brake</h1>
                     </div>
                 ) : (

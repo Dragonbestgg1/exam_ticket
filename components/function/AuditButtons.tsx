@@ -14,8 +14,8 @@ interface AuditButtonsProps {
     onNextStudent: () => void;
     examStartTime: string | null | undefined;
     currentTime: string;
-    examName: string;
-    className: string;
+    examName: string; // <-- MISSING!  This is likely the issue.
+    className: string; // <-- MISSING! This is likely the issue.
     documentId: string | null;
     firstStudent: StudentRecord | null;
 }
@@ -137,17 +137,17 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-
+    
         if (!selectedBrakeInterval) {
             alert("Please select a brake interval.");
             return;
         }
-
+    
         const brakeMinutes = parseInt(selectedBrakeInterval, 10);
         const currentTimeHHMM = getCurrentTimeHHMM();
         const brakeEndTime = new Date(new Date().getTime() + brakeMinutes * 60 * 1000);
         const brakeEndTimeHHMM = `${String(brakeEndTime.getHours()).padStart(2, '0')}:${String(brakeEndTime.getMinutes()).padStart(2, '0')}`;
-
+    
         try {
             const response = await fetch('/api/brake', {
                 method: 'POST',

@@ -215,12 +215,12 @@ export default function HomePage() {
     const handleExamChange = async (exam: string) => {
         setSelectedExam(exam);
         triggerDropdownUpdate(selectedExam, selectedClass, exam, selectedClass);
-     };
-    
-     const handleClassChange = async (className: string) => {
+    };
+
+    const handleClassChange = async (className: string) => {
         setSelectedClass(className);
         triggerDropdownUpdate(selectedExam, selectedClass, selectedExam, className);
-     };
+    };
 
     // =========================
     // Data Fetching and Student Selection Functions (updateFirstStudent)
@@ -237,7 +237,8 @@ export default function HomePage() {
                     setCurrentStudentList(firstClass.students);
                     setCurrentStudentIndex(0);
                     setFirstStudent(firstStudentData);
-                    setCurrentDocumentId(firstClass._id || null);
+                    console.log("updateFirstStudent - firstClass._id:", firstClass._id); // ADDED CONSOLE LOG
+                    setCurrentDocumentId(firstClass._id || null); // Correctly set document ID here from class
                 } else {
                     setFirstStudent(null);
                     setCurrentStudentList([]);
@@ -258,6 +259,10 @@ export default function HomePage() {
         }
     }, []);
 
+    useEffect(() => {
+        fetchData(selectedDocumentId, selectedExam, selectedClass);
+    }, [selectedDocumentId, selectedExam, selectedClass]);
+
 
     // =========================
     // Data Fetching and Student Selection Functions (useEffect for Data Fetch, updateFirstStudent, handlePreviousStudent, handleNextStudent, fetchData)
@@ -265,9 +270,9 @@ export default function HomePage() {
 
     useEffect(() => {
         if (!pusherClient) return;
-    
+
         const channel = pusherClient.subscribe('dropdown-updates');
-    
+
         channel.bind('dropdown-change', (data: any) => {
             if (data) {
                 setSelectedExam(data.selectedExam);
@@ -275,12 +280,12 @@ export default function HomePage() {
                 console.log("Dropdowns updated via Pusher:", data);
             }
         });
-    
+
         return () => {
             channel.unbind_all();
             channel.unsubscribe();
         };
-     }, [pusherClient, setSelectedExam, setSelectedClass]); 
+    }, [pusherClient, setSelectedExam, setSelectedClass]);
 
     const triggerDropdownUpdate = async (oldExam: string, oldClass: string, newExam: string, newClass: string) => {
         try {
@@ -300,14 +305,14 @@ export default function HomePage() {
                     },
                 }),
             });
-    
+
             if (!response.ok) {
                 console.error('Failed to trigger dropdown update event via Pusher');
             }
         } catch (error) {
             console.error('Error triggering dropdown update event:', error);
         }
-     };
+    };
 
     const fetchData = useCallback(async (documentId?: string | null, examFilter?: string, classFilter?: string) => {
         setLoadingData(true);
@@ -480,6 +485,10 @@ export default function HomePage() {
     };
 
 
+    { console.log("page.tsx - selectedExam:", selectedExam) }
+    { console.log("page.tsx - selectedClass:", selectedClass) }
+    { console.log("page.tsx - selectedDocumentId:", selectedDocumentId) }
+
     // =========================
     // JSX Rendering -  Organized by Component Usage and conditional rendering
     // =========================
@@ -533,7 +542,7 @@ export default function HomePage() {
                                 currentTime={headerCurrentTime}
                                 examName={selectedExam}
                                 className={selectedClass}
-                                documentId={selectedDocumentId}
+                                documentId={currentDocumentId}
                                 firstStudent={firstStudent}
                             />
                         </div>
