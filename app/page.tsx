@@ -237,8 +237,8 @@ export default function HomePage() {
                     setCurrentStudentList(firstClass.students);
                     setCurrentStudentIndex(0);
                     setFirstStudent(firstStudentData);
-                    console.log("updateFirstStudent - firstClass._id:", firstClass._id); // ADDED CONSOLE LOG
-                    setCurrentDocumentId(firstClass._id || null); // Correctly set document ID here from class
+                    console.log("updateFirstStudent - firstClass._id:", firstClass._id);
+                    setCurrentDocumentId(firstClass._id || null);
                 } else {
                     setFirstStudent(null);
                     setCurrentStudentList([]);
@@ -389,18 +389,6 @@ export default function HomePage() {
         }
     }, [updateFirstStudent]);
 
-    useEffect(() => {
-        fetchData(selectedDocumentId, selectedExam, selectedClass);
-    }, [selectedDocumentId, selectedExam, selectedClass]);
-
-    useEffect(() => {
-        if (selectedDocumentId) {
-            fetchData(selectedDocumentId);
-        } else {
-            fetchData();
-        }
-    }, [selectedDocumentId, fetchData]);
-
     const handlePreviousStudent = () => {
         if (currentStudentList.length > 0) {
             const newIndex = currentStudentIndex > 0 ? currentStudentIndex - 1 : currentStudentList.length - 1;
@@ -484,11 +472,6 @@ export default function HomePage() {
         }
     };
 
-
-    { console.log("page.tsx - selectedExam:", selectedExam) }
-    { console.log("page.tsx - selectedClass:", selectedClass) }
-    { console.log("page.tsx - selectedDocumentId:", selectedDocumentId) }
-
     // =========================
     // JSX Rendering -  Organized by Component Usage and conditional rendering
     // =========================
@@ -542,7 +525,7 @@ export default function HomePage() {
                                 currentTime={headerCurrentTime}
                                 examName={selectedExam}
                                 className={selectedClass}
-                                documentId={currentDocumentId}
+                                documentId={selectedDocumentId}
                                 firstStudent={firstStudent}
                             />
                         </div>
