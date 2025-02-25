@@ -106,12 +106,6 @@ export default function HomePage() {
         return () => clearInterval(timeUpdateIntervalId);
     }, []);
 
-    interface ExamUpdateData {
-        documentId: string;
-        selectedClass?: string;
-    }
-
-
     // =========================
     // Monitor Component Functions (useEffect for Timer, handleStart, handleEnd)
     // =========================
@@ -210,33 +204,6 @@ export default function HomePage() {
         setIsBrakeActiveFromPusher(brakeActive);
     }, [setIsBrakeActiveFromPusher]);
 
-
-    // =========================
-    // Pusher Exam Selection Synchronization
-    // =========================
-
-    useEffect(() => {
-        if (pusherClient) {
-            const channelName = 'exam-updates';
-            const eventName = 'exam-changed';
-            const channel = pusherClient.subscribe(channelName);
-            channel.bind(eventName, (data: ExamUpdateData) => {
-                if (data && data.documentId) {
-                    setSelectedDocumentId(data.documentId);
-                    if (data.selectedClass) {
-                        setSelectedClass(data.selectedClass);
-                    }
-                    console.log("Exam selection updated via Pusher:", data);
-                }
-            });
-            return () => {
-                channel.unbind_all();
-                pusherClient.unsubscribe(channelName);
-            };
-        }
-    }, [pusherClient]);
-
-
     // =========================
     // Listing Component Functions (handleFilterChange, handleExamChange, handleClassChange)
     // =========================
@@ -245,18 +212,15 @@ export default function HomePage() {
         setFilterText(text);
     };
 
-    const handleExamChange = (exam: string) => {
+    const handleExamChange = async (exam: string) => {
         setSelectedExam(exam);
-        setSelectedDocumentId(null);
-        fetchData(null, exam, selectedClass);
-    };
-
-    const handleClassChange = (className: string) => {
+        triggerDropdownUpdate(selectedExam, selectedClass, exam, selectedClass); // Call trigger function
+     };
+    
+     const handleClassChange = async (className: string) => {
         setSelectedClass(className);
-        setSelectedDocumentId(null);
-        fetchData(null, selectedExam, className);
-    };
-
+        triggerDropdownUpdate(selectedExam, selectedClass, selectedExam, className); // Call trigger function
+     };
 
     // =========================
     // Data Fetching and Student Selection Functions (updateFirstStudent)
@@ -299,6 +263,53 @@ export default function HomePage() {
     // Data Fetching and Student Selection Functions (useEffect for Data Fetch, updateFirstStudent, handlePreviousStudent, handleNextStudent, fetchData)
     // =========================
 
+    useEffect(() => {
+        if (!pusherClient) return;
+    
+        const channel = pusherClient.subscribe('dropdown-updates'); // Subscribe to the same channel
+    
+        channel.bind('dropdown-change', (data: any) => { // Bind to the same event
+            if (data) {
+                // Update the selected dropdown values in state based on received data
+                setSelectedExam(data.selectedExam);
+                setSelectedClass(data.selectedClass);
+                console.log("Dropdowns updated via Pusher:", data); // Optional: Log the update
+            }
+        });
+    
+        return () => {
+            channel.unbind_all(); // Unbind all events when component unmounts
+            channel.unsubscribe(); // Unsubscribe from the channel when component unmounts
+        };
+     }, [pusherClient, setSelectedExam, setSelectedClass]); 
+
+    const triggerDropdownUpdate = async (oldExam: string, oldClass: string, newExam: string, newClass: string) => {
+        try {
+            const response = await fetch('/api/pusher/trigger', { // Use your trigger route
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    channel: 'dropdown-updates', // Choose a channel name
+                    event: 'dropdown-change',    // Choose an event name
+                    data: {
+                        selectedExam: newExam,
+                        selectedClass: newClass,
+                        oldSelectedExam: oldExam, // Optional: Send old values for potential diffing if needed
+                        oldSelectedClass: oldClass, // Optional: Send old values for potential diffing if needed
+                    },
+                }),
+            });
+    
+            if (!response.ok) {
+                console.error('Failed to trigger dropdown update event via Pusher');
+            }
+        } catch (error) {
+            console.error('Error triggering dropdown update event:', error);
+        }
+     };
+
     const fetchData = useCallback(async (documentId?: string | null, examFilter?: string, classFilter?: string) => {
         setLoadingData(true);
         setErrorLoadingData(null);
@@ -338,7 +349,7 @@ export default function HomePage() {
                     mongoResponse = await fetch('/api/mongo-data', { signal: controller.signal });
                 }
                 if (!mongoResponse.ok) {
-                    throw new Error(`HTTP error! status: ${mongoResponse.status} - Mongo Data (Filtered or All)`);
+                    throw new Error(`HTTP error! status: ${mongoResponse.status} - Mongo Data`);
                 }
             }
             const examsResponse = await fetch('/api/exam', { signal: controller.signal });
@@ -376,32 +387,7 @@ export default function HomePage() {
 
     useEffect(() => {
         fetchData(selectedDocumentId, selectedExam, selectedClass);
-    }, [selectedDocumentId, fetchData, selectedExam, selectedClass]);
-
-    useEffect(() => {
-        const fetchInitialSelection = async () => {
-            try {
-                const response = await fetch('/api/exam/current-selection');
-                if (response.ok) {
-                    const selectionData = await response.json();
-                    if (selectionData && selectionData.documentId) {
-                        setSelectedDocumentId(selectionData.documentId);
-                        if (selectionData.selectedClass) {
-                            setSelectedClass(selectionData.selectedClass);
-                        }
-                    } else {
-                        fetchData();
-                    }
-                } else {
-                    fetchData();
-                }
-            } catch (error: unknown) {
-                const caughtError = error;
-                console.error('Error updating exam times for subsequent student:', caughtError);
-            }
-        };
-        fetchInitialSelection();
-    }, [fetchData]);
+    }, [selectedDocumentId, selectedExam, selectedClass]);
 
     useEffect(() => {
         if (selectedDocumentId) {
@@ -523,7 +509,7 @@ export default function HomePage() {
                 studentName={firstStudent?.name || "Loading..."}
             />
             {loadingData && <div>Loading data...</div>}
-            {timeoutError && <div style={{ color: 'red' }}>Data loading timed out. Please check your connection or try again later.</div>}
+            {timeoutError && <div style={{ color: 'red' }}>Data loading timed out. Please check your connection or try again.</div>}
             {!timeoutError && errorLoadingData && <div>Error loading data: {errorLoadingData.message}</div>}
             {!loadingData && !errorLoadingData && !timeoutError && (
                 isAuthenticated ? (
