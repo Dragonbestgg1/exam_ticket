@@ -214,12 +214,12 @@ export default function HomePage() {
 
     const handleExamChange = async (exam: string) => {
         setSelectedExam(exam);
-        triggerDropdownUpdate(selectedExam, selectedClass, exam, selectedClass); // Call trigger function
+        triggerDropdownUpdate(selectedExam, selectedClass, exam, selectedClass);
      };
     
      const handleClassChange = async (className: string) => {
         setSelectedClass(className);
-        triggerDropdownUpdate(selectedExam, selectedClass, selectedExam, className); // Call trigger function
+        triggerDropdownUpdate(selectedExam, selectedClass, selectedExam, className);
      };
 
     // =========================
@@ -266,38 +266,37 @@ export default function HomePage() {
     useEffect(() => {
         if (!pusherClient) return;
     
-        const channel = pusherClient.subscribe('dropdown-updates'); // Subscribe to the same channel
+        const channel = pusherClient.subscribe('dropdown-updates');
     
-        channel.bind('dropdown-change', (data: any) => { // Bind to the same event
+        channel.bind('dropdown-change', (data: any) => {
             if (data) {
-                // Update the selected dropdown values in state based on received data
                 setSelectedExam(data.selectedExam);
                 setSelectedClass(data.selectedClass);
-                console.log("Dropdowns updated via Pusher:", data); // Optional: Log the update
+                console.log("Dropdowns updated via Pusher:", data);
             }
         });
     
         return () => {
-            channel.unbind_all(); // Unbind all events when component unmounts
-            channel.unsubscribe(); // Unsubscribe from the channel when component unmounts
+            channel.unbind_all();
+            channel.unsubscribe();
         };
      }, [pusherClient, setSelectedExam, setSelectedClass]); 
 
     const triggerDropdownUpdate = async (oldExam: string, oldClass: string, newExam: string, newClass: string) => {
         try {
-            const response = await fetch('/api/pusher/trigger', { // Use your trigger route
+            const response = await fetch('/api/pusher/trigger', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    channel: 'dropdown-updates', // Choose a channel name
-                    event: 'dropdown-change',    // Choose an event name
+                    channel: 'dropdown-updates',
+                    event: 'dropdown-change',
                     data: {
                         selectedExam: newExam,
                         selectedClass: newClass,
-                        oldSelectedExam: oldExam, // Optional: Send old values for potential diffing if needed
-                        oldSelectedClass: oldClass, // Optional: Send old values for potential diffing if needed
+                        oldSelectedExam: oldExam,
+                        oldSelectedClass: oldClass,
                     },
                 }),
             });
