@@ -590,7 +590,7 @@ export default function HomePage() {
                                 currentTime={headerCurrentTime}
                                 examName={selectedExam}
                                 className={selectedClass}
-                                documentId={selectedDocumentId}
+                                documentId={currentDocumentId}
                                 firstStudent={firstStudent}
                             />
                         </div>
