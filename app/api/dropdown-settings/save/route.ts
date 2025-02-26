@@ -6,10 +6,6 @@ export async function POST(req: NextRequest) {
         const data = await req.json();
         const { selectedExam, selectedClass } = data;
 
-        if (!selectedExam || !selectedClass) {
-            return NextResponse.json({ message: 'Missing selectedExam or selectedClass' }, { status: 400 });
-        }
-
         const mongoClientPromise = await getMongoClientPromise();
         const db = mongoClientPromise.db();
         const collection = db.collection('dropdownSettings');
