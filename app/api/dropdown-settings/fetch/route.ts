@@ -1,14 +1,14 @@
-import { NextResponse, NextRequest } from 'next/server';
-import getMongoClientPromise from '@/app/lib/mongodb'; // Adjust path if necessary
+import { NextResponse } from 'next/server';
+import getMongoClientPromise from '@/app/lib/mongodb';
 
 
-export async function GET(req: NextRequest) { // Use GET for GET requests
+export async function GET() {
     try {
         const mongoClientPromise = await getMongoClientPromise();
-        const db = mongoClientPromise.db(); // Get the database from the client
-        const collection = db.collection('dropdownSettings'); // Use the same collection name
+        const db = mongoClientPromise.db();
+        const collection = db.collection('dropdownSettings');
 
-        const settings = await collection.findOne({}); // Fetch app-level settings
+        const settings = await collection.findOne({});
 
         if (settings) {
             return NextResponse.json({ selectedExam: settings.selectedExam, selectedClass: settings.selectedClass }, { status: 200 });

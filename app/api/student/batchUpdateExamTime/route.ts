@@ -1,6 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
 import getMongoClientPromise from "@/app/lib/mongodb";
-import { ObjectId } from 'mongodb';
 
 interface ExamTimeUpdate {
     studentId: string;

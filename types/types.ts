@@ -64,3 +64,10 @@ export interface ClassData {
   className: string;
   students: StudentRecord[];
 }
+
+export interface DropdownUpdateData {
+  selectedExam: string;
+  selectedClass: string;
+  oldSelectedExam: string;
+  oldSelectedClass: string;
+}

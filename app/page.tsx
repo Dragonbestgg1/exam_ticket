@@ -9,7 +9,7 @@ import style from '@/styles/pages/page.module.css';
 import { useSession } from 'next-auth/react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { StructuredData, StudentRecord } from '@/types/types';
+import { StructuredData, StudentRecord, DropdownUpdateData } from '@/types/types';
 import { usePusher } from '@/app/providers';
 
 
@@ -87,9 +87,12 @@ export default function HomePage() {
     const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
     const [isBrakeActiveFromPusher, setIsBrakeActiveFromPusher] = useState(false);
     const pusherClient = usePusher();
-    const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
-    const [persistedSelectedExam, setPersistedSelectedExam] = useState<string>('');
-    const [persistedSelectedClass, setPersistedSelectedClass] = useState<string>('');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null); // Suppress unused variable error - likely intended for future use
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [persistedSelectedExam, setPersistedSelectedExam] = useState<string>(''); // Suppress unused variable error - likely intended for future use
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [persistedSelectedClass, setPersistedSelectedClass] = useState<string>(''); // Suppress unused variable error - likely intended for future use
 
 
     const formatHM = formatTimeHoursMinutes;
@@ -322,11 +325,6 @@ export default function HomePage() {
         }
     }, []);
 
-    useEffect(() => {
-        fetchData(selectedDocumentId, selectedExam, selectedClass);
-    }, [selectedDocumentId, selectedExam, selectedClass]);
-
-
     // =========================
     // Data Fetching and Student Selection Functions (useEffect for Data Fetch, updateFirstStudent, handlePreviousStudent, handleNextStudent, fetchData)
     // =========================
@@ -336,7 +334,7 @@ export default function HomePage() {
 
         const channel = pusherClient.subscribe('dropdown-updates');
 
-        channel.bind('dropdown-change', (data: any) => {
+        channel.bind('dropdown-change', (data: DropdownUpdateData) => { // Specified type DropdownUpdateData
             if (data) {
                 setSelectedExam(data.selectedExam);
                 setSelectedClass(data.selectedClass);
@@ -450,7 +448,7 @@ export default function HomePage() {
             clearTimeout(timeoutId);
             setLoadingData(false);
         }
-    }, [updateFirstStudent]);
+    }, [updateFirstStudent]); // fetchData useCallback now includes updateFirstStudent as dependency
 
     const handlePreviousStudent = () => {
         if (currentStudentList.length > 0) {
@@ -470,6 +468,10 @@ export default function HomePage() {
         }
     };
 
+
+    useEffect(() => {
+        fetchData(selectedDocumentId, selectedExam, selectedClass);
+    }, [selectedDocumentId, selectedExam, selectedClass, fetchData]);
 
     // =========================
     // Time Update Functions (updateSubsequentStudentTimes) - Used by AuditButtons and potentially data updates
@@ -536,7 +538,7 @@ export default function HomePage() {
     };
 
     // =========================
-    // JSX Rendering -  Organized by Component Usage and conditional rendering
+    // JSX Rendering - 	Organized by Component Usage and conditional rendering
     // =========================
 
     return (
