@@ -14,8 +14,8 @@ interface AuditButtonsProps {
     onNextStudent: () => void;
     examStartTime: string | null | undefined;
     currentTime: string;
-    examName: string; // <-- MISSING!  This is likely the issue.
-    className: string; // <-- MISSING! This is likely the issue.
+    examName: string;
+    className: string;
     documentId: string | null;
     firstStudent: StudentRecord | null;
 }

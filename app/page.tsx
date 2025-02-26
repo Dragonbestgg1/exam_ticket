@@ -88,11 +88,11 @@ export default function HomePage() {
     const [isBrakeActiveFromPusher, setIsBrakeActiveFromPusher] = useState(false);
     const pusherClient = usePusher();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null); // Suppress unused variable error - likely intended for future use
+    const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [persistedSelectedExam, setPersistedSelectedExam] = useState<string>(''); // Suppress unused variable error - likely intended for future use
+    const [persistedSelectedExam, setPersistedSelectedExam] = useState<string>('');
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [persistedSelectedClass, setPersistedSelectedClass] = useState<string>(''); // Suppress unused variable error - likely intended for future use
+    const [persistedSelectedClass, setPersistedSelectedClass] = useState<string>('');
 
 
     const formatHM = formatTimeHoursMinutes;
@@ -334,7 +334,7 @@ export default function HomePage() {
 
         const channel = pusherClient.subscribe('dropdown-updates');
 
-        channel.bind('dropdown-change', (data: DropdownUpdateData) => { // Specified type DropdownUpdateData
+        channel.bind('dropdown-change', (data: DropdownUpdateData) => {
             if (data) {
                 setSelectedExam(data.selectedExam);
                 setSelectedClass(data.selectedClass);
@@ -448,7 +448,7 @@ export default function HomePage() {
             clearTimeout(timeoutId);
             setLoadingData(false);
         }
-    }, [updateFirstStudent]); // fetchData useCallback now includes updateFirstStudent as dependency
+    }, [updateFirstStudent]);
 
     const handlePreviousStudent = () => {
         if (currentStudentList.length > 0) {
@@ -531,7 +531,7 @@ export default function HomePage() {
             }
         }
         const updatedMongoData = { ...mongoData };
-        if (firstStudent && updatedMongoData && updatedMongoData[selectedClass]) { // still using selectedClass to access mongoData - this should be ok as class is selected
+        if (firstStudent && updatedMongoData && updatedMongoData[selectedClass]) {
             updatedMongoData[selectedClass].students = updatedStudentList;
             setMongoData(updatedMongoData);
         }
