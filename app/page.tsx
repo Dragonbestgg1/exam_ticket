@@ -88,6 +88,9 @@ export default function HomePage() {
     const [isBrakeActiveFromPusher, setIsBrakeActiveFromPusher] = useState(false);
     const pusherClient = usePusher();
     const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+    const [persistedSelectedExam, setPersistedSelectedExam] = useState<string>('');
+    const [persistedSelectedClass, setPersistedSelectedClass] = useState<string>('');
+
 
     const formatHM = formatTimeHoursMinutes;
 
@@ -205,6 +208,31 @@ export default function HomePage() {
     }, [setIsBrakeActiveFromPusher]);
 
     // =========================
+    // Fetch Persisted Dropdown Settings on Mount
+    // =========================
+
+    useEffect(() => {
+        const fetchDropdownSettings = async () => {
+            try {
+                const response = await fetch('/api/dropdown-settings/fetch');
+                if (response.ok) {
+                    const settings = await response.json();
+                    setPersistedSelectedExam(settings.selectedExam || '');
+                    setPersistedSelectedClass(settings.selectedClass || '');
+                    setSelectedExam(settings.selectedExam || '');
+                    setSelectedClass(settings.selectedClass || '');
+                } else {
+                    console.error('Failed to fetch dropdown settings');
+                }
+            } catch (error) {
+                console.error('Error fetching dropdown settings:', error);
+            }
+        };
+
+        fetchDropdownSettings();
+    }, []);
+
+    // =========================
     // Listing Component Functions (handleFilterChange, handleExamChange, handleClassChange)
     // =========================
 
@@ -214,11 +242,46 @@ export default function HomePage() {
 
     const handleExamChange = async (exam: string) => {
         setSelectedExam(exam);
+        setPersistedSelectedExam(exam);
+
+        try {
+            const response = await fetch('/api/dropdown-settings/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ selectedExam: exam, selectedClass: selectedClass }),
+            });
+            if (!response.ok) {
+                console.error('Failed to save dropdown settings (exam)');
+            }
+        } catch (error) {
+            console.error('Error saving dropdown settings (exam):', error);
+        }
+
+
         triggerDropdownUpdate(selectedExam, selectedClass, exam, selectedClass);
     };
 
     const handleClassChange = async (className: string) => {
         setSelectedClass(className);
+        setPersistedSelectedClass(className);
+
+        try {
+            const response = await fetch('/api/dropdown-settings/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ selectedExam: selectedExam, selectedClass: className }),
+            });
+            if (!response.ok) {
+                console.error('Failed to save dropdown settings (class)');
+            }
+        } catch (error) {
+            console.error('Error saving dropdown settings (class):', error);
+        }
+
         triggerDropdownUpdate(selectedExam, selectedClass, selectedExam, className);
     };
 
@@ -466,7 +529,7 @@ export default function HomePage() {
             }
         }
         const updatedMongoData = { ...mongoData };
-        if (firstStudent && updatedMongoData && updatedMongoData[selectedClass]) {
+        if (firstStudent && updatedMongoData && updatedMongoData[selectedClass]) { // still using selectedClass to access mongoData - this should be ok as class is selected
             updatedMongoData[selectedClass].students = updatedStudentList;
             setMongoData(updatedMongoData);
         }

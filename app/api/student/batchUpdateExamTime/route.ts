@@ -26,19 +26,24 @@ export async function POST(req: NextRequest) {
         const mongoClientPromise = await getMongoClientPromise();
         const client = await mongoClientPromise;
         const db = client.db("ExamTicket");
-        const studentsCollection = db.collection("students");
+        const studentsCollection = db.collection("exam");
 
         const bulkOperations = updates.map((update) => ({
             updateOne: {
-                filter: { _id: new ObjectId(update.studentId) },
+                filter: {
+                    [`classes.${update.className}.students._id`]: update.studentId,
+                },
                 update: {
                     $set: {
-                        examStartTime: update.examStartTime,
-                        examEndTime: update.examEndTime,
-                        examName: update.examName,
-                        className: update.className
+                        [`classes.${update.className}.students.$[student].examStartTime`]: update.examStartTime,
+                        [`classes.${update.className}.students.$[student].examEndTime`]: update.examEndTime,
+                        [`classes.${update.className}.students.$[student].examName`]: update.examName,
+                        [`classes.${update.className}.students.$[student].className`]: update.className,
                     },
                 },
+                arrayFilters: [
+                    { 'student._id': update.studentId }
+                ],
             },
         }));
 
