@@ -293,7 +293,6 @@ export default function HomePage() {
     // =========================
 
     const updateFirstStudent = useCallback((data: StructuredData | null) => {
-        //if statement ja eksiste data mongo ar tadu pasu doc id ka current doc tad nenemt defualt val
         if (data) {
             const classNames = Object.keys(data);
             if (classNames.length > 0) {
@@ -504,6 +503,33 @@ export default function HomePage() {
     // Time Update Functions (updateSubsequentStudentTimes) - Used by AuditButtons and potentially data updates
     // =========================
 
+    useEffect(() => {
+        const fetchUserState = async () => {
+            try {
+                const response = await fetch(`/api/user-state/fetch`);
+                if (response.ok) {
+                    const userState = await response.json();
+                    console.log('Data from db', userState)
+                    if (userState?.lastSelectedStudentId) {
+                        const index = currentStudentList.findIndex(student => student._id === userState.lastSelectedStudentId);
+                        if (index !== -1) {
+                            setCurrentStudentIndex(index);
+                            setFirstStudent(currentStudentList[index]);
+                        }
+                    }
+                } else {
+                    console.error('Failed to fetch user state');
+                }
+            } catch (error) {
+                console.error('Error fetching user state:', error);
+            }
+        };
+    
+        if (currentStudentList.length > 0) {
+            fetchUserState();
+        }
+    }, [currentStudentList]);
+    
     const updateSubsequentStudentTimes = async (currentStudent: StudentRecord, isStart: boolean, examName: string, className: string) => {
         if (!mongoData || !currentStudentList) return;
         const currentIndex = currentStudentIndex;

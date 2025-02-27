@@ -71,3 +71,10 @@ export interface DropdownUpdateData {
   oldSelectedExam: string;
   oldSelectedClass: string;
 }
+
+export interface UserState {
+  _id: string;
+  lastSelectedStudentId: string;
+  documentId: string;
+  className: string;
+}
