@@ -450,21 +450,50 @@ export default function HomePage() {
         }
     }, [updateFirstStudent]);
 
-    const handlePreviousStudent = () => {
+    const handlePreviousStudent = async () => {
         if (currentStudentList.length > 0) {
             const newIndex = currentStudentIndex > 0 ? currentStudentIndex - 1 : currentStudentList.length - 1;
             setCurrentStudentIndex(newIndex);
             setFirstStudent(currentStudentList[newIndex]);
             setCurrentDocumentId(currentStudentList[newIndex]._id?.toString() || null);
+
+            // Emit Pusher event for previous student change
+            await fetch('/api/pusher/trigger', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    channel: 'student-updates',
+                    event: 'student-changed',
+                    data: {
+                        studentUUID: currentStudentList[newIndex]._id,
+                        documentId: currentDocumentId,
+                    },
+                }),
+            });
         }
     };
 
-    const handleNextStudent = () => {
+    const handleNextStudent = async () => {
         if (currentStudentList.length > 0) {
             const newIndex = currentStudentIndex < currentStudentList.length - 1 ? currentStudentIndex + 1 : 0;
             setCurrentStudentIndex(newIndex);
             setFirstStudent(currentStudentList[newIndex]);
             setCurrentDocumentId(currentStudentList[newIndex]._id?.toString() || null);
+
+            // Emit Pusher event for next student change
+            await fetch('/api/pusher/trigger', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    channel: 'student-updates',
+                    event: 'student-changed',
+                    data: {
+                        studentUUID: currentStudentList[newIndex]._id,
+                        documentId: currentDocumentId,
+                        className: selectedClass,
+                    },
+                }),
+            });
         }
     };
 
@@ -555,6 +584,7 @@ export default function HomePage() {
                 onBrakeStatusChange={handleBrakeStatusChange}
             />
             <Monitor
+                key={firstStudent?._id || 'default-monitor'}
                 startTime={formatHM(firstStudent?.auditStartTime || firstStudent?.examStartTime)}
                 endTime={formatHM(firstStudent?.auditEndTime || firstStudent?.examEndTime)}
                 elapsedTime={formatTime(elapsedTime)}
@@ -564,6 +594,7 @@ export default function HomePage() {
                 isBrakeActive={isBrakeActiveFromPusher}
                 studentName={firstStudent?.name || "Loading..."}
             />
+
             {loadingData && <div>Loading data...</div>}
             {timeoutError && <div style={{ color: 'red' }}>Data loading timed out. Please check your connection or try again.</div>}
             {!timeoutError && errorLoadingData && <div>Error loading data: {errorLoadingData.message}</div>}

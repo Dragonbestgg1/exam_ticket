@@ -15,6 +15,7 @@ export const PusherProvider: React.FC<PusherProviderProps> = ({ children, appKey
     const [pusherClient, setPusherClient] = useState<PusherClient | null>(null);
 
     useEffect(() => {
+        console.log("Initializing Pusher Client...");
         const pusher = new PusherClient(appKey, {
             cluster: cluster,
         });
@@ -22,11 +23,19 @@ export const PusherProvider: React.FC<PusherProviderProps> = ({ children, appKey
         setPusherClient(pusher);
 
         return () => {
-            if (pusher) {
-                pusher.disconnect();
-            }
+            console.log("Disconnecting Pusher Client...");
+            pusher.disconnect();
         };
     }, [appKey, cluster]);
+
+    // 🌟 Add Hot Module Replacement Cleanup
+if (import.meta?.hot) {
+    import.meta.hot.dispose(() => {
+        console.log("HMR: Cleaning up Pusher client...");
+        pusherClient?.disconnect();
+    });
+}
+
 
     return (
         <PusherContext.Provider value={pusherClient}>
@@ -36,7 +45,6 @@ export const PusherProvider: React.FC<PusherProviderProps> = ({ children, appKey
 };
 
 export const usePusher = () => useContext(PusherContext) as PusherClient | null;
-
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
