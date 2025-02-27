@@ -1,4 +1,3 @@
-// app/api/user-state/fetch/route.ts
 import { NextResponse } from 'next/server';
 import getMongoClientPromise from '@/app/lib/mongodb';
 import { UserState } from '@/types/types';

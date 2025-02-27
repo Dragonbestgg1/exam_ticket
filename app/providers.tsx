@@ -11,7 +11,6 @@ interface PusherProviderProps {
     cluster: string;
 }
 
-// Extend the Window interface to include ___NEXT_HMR
 interface CustomWindow extends Window {
     ___NEXT_HMR?: boolean;
 }

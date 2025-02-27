@@ -1,4 +1,3 @@
-// app/api/user-state/save/route.ts
 import { NextResponse } from 'next/server';
 import getMongoClientPromise from '@/app/lib/mongodb';
 import { UserState } from '@/types/types';
@@ -15,7 +14,7 @@ export async function POST(request: Request) {
         const db = client.db();
 
         await db.collection<UserState>('user_state').updateOne(
-            { _id: 'global_state' }, // Now correctly typed as a string
+            { _id: 'global_state' },
             { $set: { lastSelectedStudentId, documentId, className } },
             { upsert: true }
         );
