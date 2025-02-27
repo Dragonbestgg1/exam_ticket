@@ -293,6 +293,7 @@ export default function HomePage() {
     // =========================
 
     const updateFirstStudent = useCallback((data: StructuredData | null) => {
+        //if statement ja eksiste data mongo ar tadu pasu doc id ka current doc tad nenemt defualt val
         if (data) {
             const classNames = Object.keys(data);
             if (classNames.length > 0) {
@@ -456,7 +457,6 @@ export default function HomePage() {
             setCurrentStudentIndex(newIndex);
             setFirstStudent(currentStudentList[newIndex]);
 
-            // Emit Pusher event for previous student change
             await fetch('/api/pusher/trigger', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -479,7 +479,6 @@ export default function HomePage() {
             setCurrentStudentIndex(newIndex);
             setFirstStudent(currentStudentList[newIndex]);
 
-            // Emit Pusher event for next student change
             await fetch('/api/pusher/trigger', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

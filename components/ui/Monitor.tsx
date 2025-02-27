@@ -12,7 +12,7 @@ interface MonitorProps {
     studentName: string;
     documentId: string;
     studentUUID: string;
-    isBrakeActive?: boolean; // Optional prop to set initial brake status
+    isBrakeActive?: boolean;
 }
 
 interface BreakStatusData {
@@ -34,7 +34,7 @@ interface StudentData {
 const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extraTime, studentName, documentId, studentUUID, isBrakeActive: initialIsBrakeActive = false }) => {
 
     const [extraTimeDisplay, setExtraTimeDisplay] = useState('none');
-    const [currentIsBrakeActive, setCurrentIsBrakeActive] = useState(initialIsBrakeActive); // State for brake status
+    const [currentIsBrakeActive, setCurrentIsBrakeActive] = useState(initialIsBrakeActive);
     const [studentData, setStudentData] = useState<StudentData | null>(null);
     const [currentStartTime, setCurrentStartTime] = useState(startTime);
     const [currentEndTime, setCurrentEndTime] = useState(endTime);
@@ -52,7 +52,6 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
         }
     }, [extraTime]);
 
-    // useEffect for Brake Status Updates (exam-break-updates)
     useEffect(() => {
         if (pusherClient && documentId && studentUUID) {
             const channelName = `exam-break-updates`;
@@ -62,7 +61,7 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
 
             channel.bind(eventName, (data: BreakStatusData) => {
                 if (data && data.documentId === documentId && data.studentUUID === studentUUID) {
-                    setCurrentIsBrakeActive(data.isBreakActive); // Update brake status from Pusher
+                    setCurrentIsBrakeActive(data.isBreakActive);
                 }
             });
 
@@ -73,8 +72,6 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
         }
     }, [pusherClient, documentId, studentUUID]);
 
-
-    // useEffect for Student Data Updates (student-updates)
     useEffect(() => {
         console.log("useEffect START - pusherClient:", pusherClient, "documentId:", documentId);
 
@@ -87,7 +84,7 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
 
         const channel = pusherClient.subscribe(channelName);
 
-        channel.unbind(eventName); // Keep this line for now, we'll address it later
+        channel.unbind(eventName);
 
         console.log("pusherClient:", pusherClient);
         console.log("documentId:", documentId);
@@ -97,7 +94,7 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
             console.log("handleStudentUpdate START - pusherClient:", pusherClient, "documentId:", documentId);
             console.log("Received student update via Pusher:", data.studentUUID);
 
-            console.log("Pusher data documentId:", data.documentId); // CRITICAL LOG - STEP 1A
+            console.log("Pusher data documentId:", data.documentId);
             console.log("Component documentId:", documentId);
             if (data?.documentId === documentId) {
                 console.log("Document IDs match - processing update");
@@ -152,7 +149,7 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
             pusherClient.unsubscribe(channelName);
         };
 
-    }, [pusherClient]); // Keep the dependency array as it was (or adjust if needed)
+    }, [pusherClient]);
 
 
     return (
