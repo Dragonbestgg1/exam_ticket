@@ -28,13 +28,12 @@ export const PusherProvider: React.FC<PusherProviderProps> = ({ children, appKey
         };
     }, [appKey, cluster]);
 
-    // 🌟 Add Hot Module Replacement Cleanup
-if (import.meta?.hot) {
-    import.meta.hot.dispose(() => {
-        console.log("HMR: Cleaning up Pusher client...");
-        pusherClient?.disconnect();
-    });
-}
+    if (import.meta?.hot) {
+        import.meta.hot.dispose(() => {
+            console.log("HMR: Cleaning up Pusher client...");
+            pusherClient?.disconnect();
+        });
+    }
 
 
     return (

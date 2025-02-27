@@ -53,21 +53,31 @@ const Monitor: React.FC<MonitorProps> = ({
     }, [extraTime]);
 
     useEffect(() => {
+        console.log("useEffect START - pusherClient:", pusherClient, "documentId:", documentId);
+    
         if (!pusherClient || !documentId) return;
-
+    
         const channelName = 'student-updates';
         const eventName = 'student-changed';
-
+    
         console.log("Subscribing to Pusher channel:", channelName);
-
+    
         const channel = pusherClient.subscribe(channelName);
-
-        channel.unbind(eventName);
-
+    
+        channel.unbind(eventName); // Keep this line for now, we'll address it later
+    
+        console.log("pusherClient:", pusherClient);
+        console.log("documentId:", documentId);
+    
+    
         const handleStudentUpdate = async (data: { documentId: string; studentUUID: string; className: string }) => {
+            console.log("handleStudentUpdate START - pusherClient:", pusherClient, "documentId:", documentId);
+            console.log("Received student update via Pusher:", data.studentUUID);
+        
+            console.log("Pusher data documentId:", data.documentId); // CRITICAL LOG - STEP 1A
+            console.log("Component documentId:", documentId); 
             if (data?.documentId === documentId) {
-                console.log("Received student update via Pusher:", data.studentUUID);
-
+                console.log("Document IDs match - processing update");
                 try {
                     const response = await fetch('/api/student/fetch', {
                         method: 'POST',
@@ -78,38 +88,48 @@ const Monitor: React.FC<MonitorProps> = ({
                             studentUUID: data.studentUUID,
                         }),
                     });
-
+    
                     if (!response.ok) {
-                        console.error('Failed to fetch student data:', response.statusText);
+                        console.error('Failed to fetch student data:', response.statusText, response.status);
+                        try {
+                            const errorBody = await response.json();
+                            console.error('Response body:', errorBody);
+                        } catch (bodyError) {
+                            console.error('Error reading response body:', bodyError);
+                        }
                         return;
                     }
-
+    
                     const { studentData } = await response.json();
                     console.log('Fetched student data:', studentData);
                     setStudentData(studentData);
-
-                    // Update all relevant state variables with new data
+    
                     setCurrentStartTime(studentData.examStartTime || startTime);
                     setCurrentEndTime(studentData.examEndTime || endTime);
                     setCurrentElapsedTime(elapsedTime);
                     setCurrentExtraTime(extraTime);
                     setCurrentBrakeStatus(isBrakeActive);
-
+    
+                    console.log('ending if statement');
+    
                 } catch (error) {
                     console.error('Error fetching student data:', error);
                 }
             }
+            console.log('finished handling student update');
         };
-
+    
+        console.log('finished loading Next student data');
+    
         channel.bind(eventName, handleStudentUpdate);
-
+    
         return () => {
             console.log("Unsubscribing from Pusher channel:", channelName);
             channel.unbind(eventName, handleStudentUpdate);
             pusherClient.unsubscribe(channelName);
         };
-
-    }, [pusherClient, documentId]);
+    
+    }, [pusherClient]);
 
     return (
         <div className={`${style.main} ${currentBrakeStatus ? style.breakActive : ''}`}>
