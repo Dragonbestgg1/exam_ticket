@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import style from '@/styles/ui/monitor.module.css';
+import style from '@/styles/ui/monitor.module.css'
 import { useState, useEffect } from 'react';
 import { usePusher } from '@/app/providers';
 
@@ -12,7 +12,13 @@ interface MonitorProps {
     studentName: string;
     documentId: string;
     studentUUID: string;
-    isBrakeActive?: boolean;
+    isBrakeActive?: boolean; // Optional prop to set initial brake status
+}
+
+interface BreakStatusData {
+    documentId: string;
+    studentUUID: string;
+    isBreakActive: boolean;
 }
 
 interface StudentData {
@@ -24,23 +30,17 @@ interface StudentData {
     examEndTime: string;
 }
 
-const Monitor: React.FC<MonitorProps> = ({
-    startTime,
-    endTime,
-    elapsedTime,
-    extraTime,
-    studentName,
-    documentId,
-    studentUUID,
-    isBrakeActive = false,
-}) => {
+
+const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extraTime, studentName, documentId, studentUUID, isBrakeActive: initialIsBrakeActive = false }) => {
+
     const [extraTimeDisplay, setExtraTimeDisplay] = useState('none');
+    const [currentIsBrakeActive, setCurrentIsBrakeActive] = useState(initialIsBrakeActive); // State for brake status
     const [studentData, setStudentData] = useState<StudentData | null>(null);
     const [currentStartTime, setCurrentStartTime] = useState(startTime);
     const [currentEndTime, setCurrentEndTime] = useState(endTime);
     const [currentElapsedTime, setCurrentElapsedTime] = useState(elapsedTime);
     const [currentExtraTime, setCurrentExtraTime] = useState(extraTime);
-    const [currentBrakeStatus, setCurrentBrakeStatus] = useState(isBrakeActive);
+
 
     const pusherClient = usePusher();
 
@@ -52,30 +52,53 @@ const Monitor: React.FC<MonitorProps> = ({
         }
     }, [extraTime]);
 
+    // useEffect for Brake Status Updates (exam-break-updates)
+    useEffect(() => {
+        if (pusherClient && documentId && studentUUID) {
+            const channelName = `exam-break-updates`;
+            const eventName = 'break-status-changed';
+
+            const channel = pusherClient.subscribe(channelName);
+
+            channel.bind(eventName, (data: BreakStatusData) => {
+                if (data && data.documentId === documentId && data.studentUUID === studentUUID) {
+                    setCurrentIsBrakeActive(data.isBreakActive); // Update brake status from Pusher
+                }
+            });
+
+            return () => {
+                channel.unbind_all();
+                pusherClient.unsubscribe(channelName);
+            };
+        }
+    }, [pusherClient, documentId, studentUUID]);
+
+
+    // useEffect for Student Data Updates (student-updates)
     useEffect(() => {
         console.log("useEffect START - pusherClient:", pusherClient, "documentId:", documentId);
-    
+
         if (!pusherClient || !documentId) return;
-    
+
         const channelName = 'student-updates';
         const eventName = 'student-changed';
-    
+
         console.log("Subscribing to Pusher channel:", channelName);
-    
+
         const channel = pusherClient.subscribe(channelName);
-    
+
         channel.unbind(eventName); // Keep this line for now, we'll address it later
-    
+
         console.log("pusherClient:", pusherClient);
         console.log("documentId:", documentId);
-    
-    
+
+
         const handleStudentUpdate = async (data: { documentId: string; studentUUID: string; className: string }) => {
             console.log("handleStudentUpdate START - pusherClient:", pusherClient, "documentId:", documentId);
             console.log("Received student update via Pusher:", data.studentUUID);
-        
+
             console.log("Pusher data documentId:", data.documentId); // CRITICAL LOG - STEP 1A
-            console.log("Component documentId:", documentId); 
+            console.log("Component documentId:", documentId);
             if (data?.documentId === documentId) {
                 console.log("Document IDs match - processing update");
                 try {
@@ -88,7 +111,7 @@ const Monitor: React.FC<MonitorProps> = ({
                             studentUUID: data.studentUUID,
                         }),
                     });
-    
+
                     if (!response.ok) {
                         console.error('Failed to fetch student data:', response.statusText, response.status);
                         try {
@@ -99,71 +122,78 @@ const Monitor: React.FC<MonitorProps> = ({
                         }
                         return;
                     }
-    
+
                     const { studentData } = await response.json();
                     console.log('Fetched student data:', studentData);
                     setStudentData(studentData);
-    
+
                     setCurrentStartTime(studentData.examStartTime || startTime);
                     setCurrentEndTime(studentData.examEndTime || endTime);
                     setCurrentElapsedTime(elapsedTime);
                     setCurrentExtraTime(extraTime);
-                    setCurrentBrakeStatus(isBrakeActive);
-    
+
+
                     console.log('ending if statement');
-    
+
                 } catch (error) {
                     console.error('Error fetching student data:', error);
                 }
             }
             console.log('finished handling student update');
         };
-    
+
         console.log('finished loading Next student data');
-    
+
         channel.bind(eventName, handleStudentUpdate);
-    
+
         return () => {
             console.log("Unsubscribing from Pusher channel:", channelName);
             channel.unbind(eventName, handleStudentUpdate);
             pusherClient.unsubscribe(channelName);
         };
-    
-    }, [pusherClient]);
+
+    }, [pusherClient]); // Keep the dependency array as it was (or adjust if needed)
+
 
     return (
-        <div className={`${style.main} ${currentBrakeStatus ? style.breakActive : ''}`}>
+        <div className={`${style.main} ${currentIsBrakeActive ? style.breakActive : ''}`}>
             <div className={`${style.monitor}`}>
-                <div className={`${style.monitorContent}`}>
-                    <div className={`${style.student}`}>
-                        <h1 className={`${style.studentName}`}>
-                            {studentData?.name || studentName}
-                        </h1>
+                {currentIsBrakeActive ? (
+                    <div className={`${style.breakDisplay}`}>
+                        <h1 className={`${style.breakText}`}>On Brake</h1>
                     </div>
-                    <div className={`${style.timers}`}>
-                        <div className={`${style.timer}`}>
-                            <h1 className={`${style.timerTitle}`}>Sāktais laiks: </h1>
-                            <h1 className={`${style.time}`}>{currentStartTime}</h1>
+                ) : (
+                    <div className={`${style.monitorContent}`}>
+                        <div className={`${style.student}`}>
+                            <h1 className={`${style.studentName}`}>
+                                {studentData?.name || studentName}
+                            </h1>
                         </div>
-                        <div className={`${style.timer}`}>
-                            <h1 className={`${style.timerTitle}`}>Beigšanas laiks: </h1>
-                            <h1 className={`${style.time}`}>{currentEndTime}</h1>
+                        <div className={`${style.timers}`}>
+                            <div className={`${style.timer}`}>
+                                <h1 className={`${style.timerTitle}`}>Sāktais laiks: </h1>
+                                <h1 className={`${style.time}`}>{currentStartTime}</h1>
+                            </div>
+                            <div className={`${style.timer}`}>
+                                <h1 className={`${style.timerTitle}`}>Beigšanas laiks: </h1>
+                                <h1 className={`${style.time}`}>{currentEndTime}</h1>
+                            </div>
+                        </div>
+                        <div className={`${style.runtimes}`}>
+                            <div className={`${style.runtimer}`}>
+                                <h1>Aizņemtais laiks: </h1>
+                                <h1>{currentElapsedTime || "00:00:00"}</h1>
+                            </div>
+                            <div className={`${style.runtimer1}`} style={{ display: extraTimeDisplay }}>
+                                <h1>Papildus laiks: </h1>
+                                <h1>+ {currentExtraTime || "00:00:00"}</h1>
+                            </div>
                         </div>
                     </div>
-                    <div className={`${style.runtimes}`}>
-                        <div className={`${style.runtimer}`}>
-                            <h1>Aizņemtais laiks: </h1>
-                            <h1>{currentElapsedTime || "00:00:00"}</h1>
-                        </div>
-                        <div className={`${style.runtimer1}`} style={{ display: extraTimeDisplay }}>
-                            <h1>Papildus laiks: </h1>
-                            <h1>+ {currentExtraTime || "00:00:00"}</h1>
-                        </div>
-                    </div>
-                </div>
+                )}
             </div>
         </div>
-    );
-};
+    )
+}
 
 export default Monitor;
