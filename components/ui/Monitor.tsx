@@ -44,7 +44,7 @@ const Monitor: React.FC<MonitorProps> = ({
     documentId,
     studentUUID,
     isBrakeActive: initialIsBrakeActive = false,
-    firstStudent // Now correctly typed as StudentRecord
+    firstStudent
 }) => {
 
     const [extraTimeDisplay, setExtraTimeDisplay] = useState('none');

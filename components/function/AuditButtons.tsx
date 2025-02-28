@@ -117,7 +117,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
         if (!startDisabled && !isStartActive) {
             setIsStartActive(true);
             setIsEndActive(false);
-            onStart('00:00:00'); // Reset the timer display
+            onStart('00:00:00');
     
             try {
                 const response = await fetch('/api/pusher/start-timer', {
