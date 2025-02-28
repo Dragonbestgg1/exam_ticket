@@ -23,7 +23,6 @@ export async function POST(req: NextRequest) {
             stopTimestamp,
         });
 
-        // Validate and format the stop time
         const validTimestamp = Number(stopTimestamp);
         if (isNaN(validTimestamp) || validTimestamp <= 0) {
             throw new Error('Invalid stop timestamp provided');
@@ -31,7 +30,6 @@ export async function POST(req: NextRequest) {
 
         const formattedStopTime = new Date(validTimestamp).toISOString();
 
-        // Connect to MongoDB
         const client = await getMongoClientPromise();
         const db = client.db(process.env.MONGODB_DB);
         const examsCollection = db.collection('exams');
