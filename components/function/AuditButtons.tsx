@@ -113,23 +113,56 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
         onNextStudent();
     };
 
-    const handleStartClick = () => {
+    const handleStartClick = async () => {
         if (!startDisabled && !isStartActive) {
             setIsStartActive(true);
             setIsEndActive(false);
-            const startTime = getCurrentTimeHHMM();
-            onStart(startTime);
+            onStart('00:00:00'); // Reset the timer display
+    
+            try {
+                const response = await fetch('/api/pusher/start-timer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        documentId,
+                        studentUUID: firstStudent?._id,
+                    }),
+                });
+    
+                if (!response.ok) {
+                    console.error('Failed to trigger start-timer event via Pusher');
+                }
+            } catch (error) {
+                console.error('Error triggering start-timer event:', error);
+            }
         }
     };
+    
 
-    const handleEndClick = () => {
+    const handleEndClick = async () => {
         if (!isEndActive) {
             setIsEndActive(true);
             setIsStartActive(false);
-            const endTime = getCurrentTimeHHMM();
-            onEnd(endTime);
+    
+            try {
+                const response = await fetch('/api/pusher/stop-timer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        documentId,
+                        studentUUID: firstStudent?._id,
+                    }),
+                });
+    
+                if (!response.ok) {
+                    console.error('Failed to trigger stop-timer event via Pusher');
+                }
+            } catch (error) {
+                console.error('Error triggering stop-timer event:', error);
+            }
         }
     };
+    
 
     const handleBrakeIntervalChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedBrakeInterval(event.target.value);

@@ -180,6 +180,53 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
         }
     }, [studentData, documentId]);
 
+    useEffect(() => {
+        if (pusherClient && documentId && studentUUID) {
+            const channel = pusherClient.subscribe('timer-channel');
+    
+            let timerInterval: NodeJS.Timeout | null = null;
+    
+            const handleTimerStart = (data: { startSignal: boolean; documentId: string; studentUUID: string }) => {
+                if (data.documentId === documentId && data.studentUUID === studentUUID) {
+                    console.log('Timer start signal received, starting chronometer...');
+                    
+                    setCurrentElapsedTime('00:00:00'); 
+                    let elapsedSeconds = 0;
+    
+                    if (timerInterval) clearInterval(timerInterval);
+    
+                    timerInterval = setInterval(() => {
+                        elapsedSeconds++;
+                        const hours = Math.floor(elapsedSeconds / 3600);
+                        const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+                        const seconds = elapsedSeconds % 60;
+                        setCurrentElapsedTime(
+                            `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+                        );
+                    }, 1000);
+                }
+            };
+    
+            const handleTimerStop = (data: { stopSignal: boolean; documentId: string; studentUUID: string }) => {
+                if (data.documentId === documentId && data.studentUUID === studentUUID) {
+                    console.log('Timer stop signal received, stopping chronometer...');
+                    if (timerInterval) clearInterval(timerInterval);
+                }
+            };
+    
+            channel.bind('timer-started', handleTimerStart);
+            channel.bind('timer-stopped', handleTimerStop);
+    
+            return () => {
+                if (timerInterval) clearInterval(timerInterval);
+                channel.unbind('timer-started', handleTimerStart);
+                channel.unbind('timer-stopped', handleTimerStop);
+                pusherClient.unsubscribe('timer-channel');
+            };
+        }
+    }, [pusherClient, documentId, studentUUID]);
+    
+    
 
     return (
         <div className={`${style.main} ${currentIsBrakeActive ? style.breakActive : ''}`}>
