@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
             startSignal: true,
             documentId,
             studentUUID,
-            startTimestamp: Date.now() // Send the precise start time
         });
 
         return NextResponse.json({ status: 'success' }, { status: 200 });
