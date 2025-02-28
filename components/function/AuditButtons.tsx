@@ -120,12 +120,17 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
             onStart('00:00:00'); // Reset the timer display
     
             try {
+                const now = Date.now(); // Get current timestamp in milliseconds
+                console.log("Start Timestamp:", now)
                 const response = await fetch('/api/pusher/start-timer', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         documentId,
                         studentUUID: firstStudent?._id,
+                        startTimestamp: now, // Send the timestamp
+                        examName,
+                        className,
                     }),
                 });
     
@@ -138,19 +143,23 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
         }
     };
     
-
     const handleEndClick = async () => {
         if (!isEndActive) {
             setIsEndActive(true);
             setIsStartActive(false);
     
             try {
+                const now = Date.now(); // Get current timestamp in milliseconds
+                console.log("Stop Timestamp:", now)
                 const response = await fetch('/api/pusher/stop-timer', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         documentId,
                         studentUUID: firstStudent?._id,
+                        stopTimestamp: now, // Send the timestamp
+                        examName,
+                        className,
                     }),
                 });
     

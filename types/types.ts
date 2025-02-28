@@ -10,6 +10,7 @@ export interface StudentRecord {
   [key: string]: unknown;
   auditStartTime?: string | null;
   auditEndTime?: string | null;
+  className: string;
 }
 
 export interface ClassDetails {

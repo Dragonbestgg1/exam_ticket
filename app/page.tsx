@@ -524,12 +524,12 @@ export default function HomePage() {
                 console.error('Error fetching user state:', error);
             }
         };
-    
+
         if (currentStudentList.length > 0) {
             fetchUserState();
         }
     }, [currentStudentList]);
-    
+
     const updateSubsequentStudentTimes = async (currentStudent: StudentRecord, isStart: boolean, examName: string, className: string) => {
         if (!mongoData || !currentStudentList) return;
         const currentIndex = currentStudentIndex;
@@ -617,8 +617,8 @@ export default function HomePage() {
                 studentUUID={firstStudent?._id}
                 isBrakeActive={isBrakeActiveFromPusher}
                 studentName={firstStudent?.name || "Loading..."}
+                firstStudent={firstStudent} // Already a StudentRecord type
             />
-
             {loadingData && <div>Loading data...</div>}
             {timeoutError && <div style={{ color: 'red' }}>Data loading timed out. Please check your connection or try again.</div>}
             {!timeoutError && errorLoadingData && <div>Error loading data: {errorLoadingData.message}</div>}
