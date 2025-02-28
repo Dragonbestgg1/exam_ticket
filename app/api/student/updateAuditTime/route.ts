@@ -1,6 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
 import getMongoClientPromise from "@/app/lib/mongodb";
-import { ObjectId } from "mongodb"; // Import ObjectId for ID conversion
 
 export async function POST(req: NextRequest) {
     try {
@@ -13,15 +12,7 @@ export async function POST(req: NextRequest) {
 
         const requestBody = await req.json();
 
-        const { 
-            studentId, 
-            auditStartTime, 
-            auditEndTime, 
-            examName, 
-            className, 
-            auditElapsedTime, 
-            auditExtraTime 
-        } = requestBody;
+        const { studentId, auditStartTime, auditEndTime, examName, className, auditElapsedTime, auditExtraTime } = requestBody;
 
         const updateFields: { [key: string]: string | undefined } = {};
         if (auditStartTime) {
@@ -39,7 +30,7 @@ export async function POST(req: NextRequest) {
 
         const query = {
             examName: examName,
-            [`classes.${className}.students._id`]: new ObjectId(studentId), // Convert ID to ObjectId
+            [`classes.${className}.students._id`]: studentId,
         };
 
         const update = {
@@ -47,7 +38,7 @@ export async function POST(req: NextRequest) {
         };
 
         const options = {
-            arrayFilters: [{ "studentElem._id": new ObjectId(studentId) }], // Ensure ID match in array filter
+            arrayFilters: [{ "studentElem._id": studentId }],
         };
 
         const result = await examsCollection.updateOne(query, update, options);
