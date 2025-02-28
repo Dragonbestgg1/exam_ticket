@@ -1,8 +1,9 @@
 "use client"
 
 import style from '@/styles/ui/monitor.module.css'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePusher } from '@/app/providers';
+import { StudentRecord } from '@/types/types';
 
 interface MonitorProps {
     startTime: string;
@@ -13,12 +14,14 @@ interface MonitorProps {
     documentId: string;
     studentUUID: string;
     isBrakeActive?: boolean;
+    firstStudent: StudentRecord | null;
 }
 
 interface BreakStatusData {
     documentId: string;
     studentUUID: string;
     isBreakActive: boolean;
+    className?: string;
 }
 
 interface StudentData {
@@ -32,7 +35,17 @@ interface StudentData {
 }
 
 
-const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extraTime, studentName, documentId, studentUUID, isBrakeActive: initialIsBrakeActive = false }) => {
+const Monitor: React.FC<MonitorProps> = ({
+    startTime,
+    endTime,
+    elapsedTime,
+    extraTime,
+    studentName,
+    documentId,
+    studentUUID,
+    isBrakeActive: initialIsBrakeActive = false,
+    firstStudent // Now correctly typed as StudentRecord
+}) => {
 
     const [extraTimeDisplay, setExtraTimeDisplay] = useState('none');
     const [currentIsBrakeActive, setCurrentIsBrakeActive] = useState(initialIsBrakeActive);
@@ -44,6 +57,11 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
 
 
     const pusherClient = usePusher();
+
+    const pusherClientRef = useRef(pusherClient);
+    useEffect(() => {
+        pusherClientRef.current = pusherClient;
+    }, [pusherClient]);
 
     useEffect(() => {
         if (extraTime && extraTime !== "00:00:00" && !extraTime.startsWith("-")) {
@@ -147,10 +165,10 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
         return () => {
             console.log("Unsubscribing from Pusher channel:", channelName);
             channel.unbind(eventName, handleStudentUpdate);
-            pusherClient.unsubscribe(channelName);
+            pusherClientRef.current.unsubscribe(channelName);
         };
 
-    }, [pusherClient, documentId, startTime, endTime, elapsedTime, extraTime]);
+    }, [documentId, studentUUID]);
 
     const saveUserState = async (studentUUID: string, documentId: string, className: string) => {
         try {
@@ -183,18 +201,18 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
     useEffect(() => {
         if (pusherClient && documentId && studentUUID) {
             const channel = pusherClient.subscribe('timer-channel');
-    
+
             let timerInterval: NodeJS.Timeout | null = null;
-    
+
             const handleTimerStart = (data: { startSignal: boolean; documentId: string; studentUUID: string }) => {
                 if (data.documentId === documentId && data.studentUUID === studentUUID) {
                     console.log('Timer start signal received, starting chronometer...');
-                    
-                    setCurrentElapsedTime('00:00:00'); 
+
+                    setCurrentElapsedTime('00:00:00');
                     let elapsedSeconds = 0;
-    
+
                     if (timerInterval) clearInterval(timerInterval);
-    
+
                     timerInterval = setInterval(() => {
                         elapsedSeconds++;
                         const hours = Math.floor(elapsedSeconds / 3600);
@@ -206,17 +224,17 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
                     }, 1000);
                 }
             };
-    
+
             const handleTimerStop = (data: { stopSignal: boolean; documentId: string; studentUUID: string }) => {
                 if (data.documentId === documentId && data.studentUUID === studentUUID) {
                     console.log('Timer stop signal received, stopping chronometer...');
                     if (timerInterval) clearInterval(timerInterval);
                 }
             };
-    
+
             channel.bind('timer-started', handleTimerStart);
             channel.bind('timer-stopped', handleTimerStop);
-    
+
             return () => {
                 if (timerInterval) clearInterval(timerInterval);
                 channel.unbind('timer-started', handleTimerStart);
@@ -225,8 +243,8 @@ const Monitor: React.FC<MonitorProps> = ({ startTime, endTime, elapsedTime, extr
             };
         }
     }, [pusherClient, documentId, studentUUID]);
-    
-    
+
+
 
     return (
         <div className={`${style.main} ${currentIsBrakeActive ? style.breakActive : ''}`}>

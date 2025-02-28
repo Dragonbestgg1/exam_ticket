@@ -617,7 +617,7 @@ export default function HomePage() {
                 studentUUID={firstStudent?._id}
                 isBrakeActive={isBrakeActiveFromPusher}
                 studentName={firstStudent?.name || "Loading..."}
-                firstStudent={firstStudent} // Already a StudentRecord type
+                firstStudent={firstStudent}
             />
             {loadingData && <div>Loading data...</div>}
             {timeoutError && <div style={{ color: 'red' }}>Data loading timed out. Please check your connection or try again.</div>}
