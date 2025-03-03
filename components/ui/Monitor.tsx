@@ -41,7 +41,6 @@ const Monitor: React.FC<MonitorProps> = ({
     documentId,
     studentUUID,
     isBrakeActive: initialIsBrakeActive = false,
-    firstStudent
 }) => {
     const [currentIsBrakeActive, setCurrentIsBrakeActive] = useState(initialIsBrakeActive);
     const [studentData, setStudentData] = useState<StudentData | null>(null);
