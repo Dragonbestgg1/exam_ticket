@@ -50,8 +50,7 @@ const Monitor: React.FC<MonitorProps> = ({
 
     const pusherClient = usePusher();
     const pusherClientRef = useRef(pusherClient);
-    
-    // Initialize the timerRef
+
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -62,7 +61,7 @@ const Monitor: React.FC<MonitorProps> = ({
         const fetchBreakStatus = async () => {
             if (!studentUUID || !documentId) {
                 console.log('Skipping fetch: studentUUID or documentId is not available yet.');
-                return; // Ensure fetch is only made once the required data is available
+                return;
             }
     
             try {
@@ -96,14 +95,13 @@ const Monitor: React.FC<MonitorProps> = ({
                 console.error('Error fetching break status:', error);
             }
         };
-    
-        // Delay the fetch by 500ms to ensure the page has loaded first
+
         const timer = setTimeout(() => {
             fetchBreakStatus();
-        }, 500); // delay by 500ms (adjust as necessary)
+        }, 500);
       
-        return () => clearTimeout(timer); // cleanup if the component is unmounted before the timeout
-    }, [studentUUID, documentId]);  // Add dependencies for when these change
+        return () => clearTimeout(timer);
+    }, [studentUUID, documentId]);
     
 
     useEffect(() => {
