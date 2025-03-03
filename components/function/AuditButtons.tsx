@@ -8,10 +8,10 @@ import { StudentRecord } from '@/types/types';
 /* eslint-disable react-hooks/rules-of-hooks */
 
 interface AuditButtonsProps {
-    onStart: (startTime: string) => void;
-    onEnd: (endTime: string) => void;
-    onPreviousStudent: () => void;
-    onNextStudent: () => void;
+    onStart: (startTime: string) => Promise<void>; // Changed to Promise<void>
+    onEnd: (endTime: string) => Promise<void>;     // Added onEnd prop
+    onPreviousStudent: () => Promise<void>;
+    onNextStudent: () => Promise<void>;
     examStartTime: string | null | undefined;
     currentTime: string;
     examName: string;
@@ -87,7 +87,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
         return roundTimeToNearestMinute(now);
     };
 
-    const handleLeftClick = () => {
+    const handleLeftClick = async () => { // Changed to async
         const arrowIcon = leftArrowWrapperRef.current?.querySelector('svg');
         if (arrowIcon) {
             arrowIcon.style.transform = 'translateX(-10px)';
@@ -97,10 +97,10 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
                 }
             }, 300);
         }
-        onPreviousStudent();
+        await onPreviousStudent(); // Await the promise
     };
 
-    const handleRightClick = () => {
+    const handleRightClick = async () => { // Changed to async
         const arrowIcon = rightArrowWrapperRef.current?.querySelector('svg');
         if (arrowIcon) {
             arrowIcon.style.transform = 'translateX(10px)';
@@ -110,59 +110,73 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
                 }
             }, 300);
         }
-        onNextStudent();
+        await onNextStudent(); // Await the promise
     };
 
-    const handleStartClick = async () => {
+    const handleStartClick = async () => { // Changed to async
         if (!startDisabled && !isStartActive) {
+            if (!className) {
+                console.error("❌ Error: className is missing!");
+                return;
+            }
             setIsStartActive(true);
             setIsEndActive(false);
-            onStart('00:00:00');
-    
+            await onStart(getCurrentTimeHHMM()); // Use getCurrentTimeHHMM to get rounded time and await
+
             try {
+                console.log("✅ Sending Start Request:", { documentId, studentUUID: firstStudent?._id, className });
                 const response = await fetch('/api/pusher/start-timer', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         documentId,
                         studentUUID: firstStudent?._id,
+                        className,
+                        examName,
                     }),
                 });
-    
+
                 if (!response.ok) {
-                    console.error('Failed to trigger start-timer event via Pusher');
+                    console.error('❌ Failed to trigger start-timer event via Pusher');
                 }
             } catch (error) {
-                console.error('Error triggering start-timer event:', error);
+                console.error('❌ Error triggering start-timer event:', error);
             }
         }
     };
-    
 
-    const handleEndClick = async () => {
+    const handleEndClick = async () => { // Changed to async
         if (!isEndActive) {
+            if (!className) {
+                console.error("❌ Error: className is missing!");
+                return;
+            }
             setIsEndActive(true);
             setIsStartActive(false);
-    
+            await onEnd(getCurrentTimeHHMM()); // Use getCurrentTimeHHMM to get rounded time and await
+
             try {
+                console.log("✅ Sending Stop Request:", { documentId, studentUUID: firstStudent?._id, className });
                 const response = await fetch('/api/pusher/stop-timer', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         documentId,
                         studentUUID: firstStudent?._id,
+                        className,
+                        examName,
                     }),
                 });
-    
+
                 if (!response.ok) {
-                    console.error('Failed to trigger stop-timer event via Pusher');
+                    console.error('❌ Failed to trigger stop-timer event via Pusher');
                 }
             } catch (error) {
-                console.error('Error triggering stop-timer event:', error);
+                console.error('❌ Error triggering stop-timer event:', error);
             }
         }
     };
-    
+
 
     const handleBrakeIntervalChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedBrakeInterval(event.target.value);
@@ -170,17 +184,17 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-    
+
         if (!selectedBrakeInterval) {
             alert("Please select a brake interval.");
             return;
         }
-    
+
         const brakeMinutes = parseInt(selectedBrakeInterval, 10);
         const currentTimeHHMM = getCurrentTimeHHMM();
         const brakeEndTime = new Date(new Date().getTime() + brakeMinutes * 60 * 1000);
         const brakeEndTimeHHMM = `${String(brakeEndTime.getHours()).padStart(2, '0')}:${String(brakeEndTime.getMinutes()).padStart(2, '0')}`;
-    
+
         try {
             const response = await fetch('/api/brake', {
                 method: 'POST',
@@ -248,6 +262,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
                         <span ref={leftArrowWrapperRef} style={{ display: 'inline-flex' }}>
                             <FaArrowLeft style={{ transition: 'transform 0.3s ease-out' }} />
                         </span>
+
                         {!isMobile && <span>Iepriekšējais</span>}
                     </button>
                     <button className={`${style.selectorButton}`} onClick={handleRightClick} type="button">
@@ -255,6 +270,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
                         <span ref={rightArrowWrapperRef} style={{ display: 'inline-flex' }}>
                             <FaArrowRight style={{ transition: 'transform 0.3s ease-out' }} />
                         </span>
+
                     </button>
                 </div>
                 <form className={`${style.brakes}`} onSubmit={handleSubmit}>

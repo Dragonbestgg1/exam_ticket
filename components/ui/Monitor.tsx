@@ -1,7 +1,7 @@
 "use client"
 
 import style from '@/styles/ui/monitor.module.css'
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePusher } from '@/app/providers';
 import { StudentRecord } from '@/types/types';
 
@@ -92,31 +92,18 @@ const Monitor: React.FC<MonitorProps> = ({
     }, [pusherClient, documentId, studentUUID]);
 
     useEffect(() => {
-        console.log("useEffect START - pusherClient:", pusherClient, "documentId:", documentId);
 
         if (!pusherClient || !documentId) return;
 
         const channelName = 'student-updates';
         const eventName = 'student-changed';
 
-        console.log("Subscribing to Pusher channel:", channelName);
-
         const channel = pusherClient.subscribe(channelName);
 
         channel.unbind(eventName);
 
-        console.log("pusherClient:", pusherClient);
-        console.log("documentId:", documentId);
-
-
         const handleStudentUpdate = async (data: { documentId: string; studentUUID: string; className: string }) => {
-            console.log("handleStudentUpdate START - pusherClient:", pusherClient, "documentId:", documentId);
-            console.log("Received student update via Pusher:", data.studentUUID);
-
-            console.log("Pusher data documentId:", data.documentId);
-            console.log("Component documentId:", documentId);
             if (data?.documentId === documentId) {
-                console.log("Document IDs match - processing update");
                 try {
                     const response = await fetch('/api/student/fetch', {
                         method: 'POST',
@@ -140,7 +127,6 @@ const Monitor: React.FC<MonitorProps> = ({
                     }
 
                     const { studentData } = await response.json();
-                    console.log('Fetched student data:', studentData);
                     setStudentData(studentData);
 
                     setCurrentStartTime(studentData.examStartTime || startTime);
@@ -148,29 +134,22 @@ const Monitor: React.FC<MonitorProps> = ({
                     setCurrentElapsedTime(elapsedTime);
                     setCurrentExtraTime(extraTime);
 
-
-                    console.log('ending if statement');
-
                 } catch (error) {
                     console.error('Error fetching student data:', error);
                 }
             }
-            console.log('finished handling student update');
         };
-
-        console.log('finished loading Next student data');
 
         channel.bind(eventName, handleStudentUpdate);
 
         return () => {
-            console.log("Unsubscribing from Pusher channel:", channelName);
             channel.unbind(eventName, handleStudentUpdate);
             pusherClientRef.current.unsubscribe(channelName);
         };
 
-    }, [documentId, studentUUID]);
+    }, [documentId, studentUUID, pusherClient, startTime, endTime, elapsedTime, extraTime]);
 
-    const saveUserState = async (studentUUID: string, documentId: string, className: string) => {
+    const saveUserState = useCallback(async (studentUUID: string, documentId: string, className: string) => {
         try {
             await fetch('/api/user-state/save', {
                 method: 'POST',
@@ -181,11 +160,10 @@ const Monitor: React.FC<MonitorProps> = ({
                     className,
                 }),
             });
-            console.log('User state saved successfully:', { studentUUID, documentId, className });
         } catch (error) {
             console.error('Error saving user state:', error);
         }
-    };
+    }, []);
 
     useEffect(() => {
         if (studentData?.name && studentData?._id && documentId) {
@@ -196,54 +174,79 @@ const Monitor: React.FC<MonitorProps> = ({
             });
             saveUserState(studentData._id, documentId, studentData.className || '');
         }
-    }, [studentData, documentId]);
+    }, [studentData, documentId, saveUserState]);
 
     useEffect(() => {
-        if (pusherClient && documentId && studentUUID) {
-            const channel = pusherClient.subscribe('timer-channel');
+        if (!pusherClient || !documentId || !studentUUID) return;
 
-            let timerInterval: NodeJS.Timeout | null = null;
+        const channel = pusherClient.subscribe('timer-channel');
+        let interval: NodeJS.Timeout | null = null;
+        channel.bind('timer-started', (data: { documentId: string; studentUUID: string }) => {
+            if (data.documentId === documentId && data.studentUUID === studentUUID) {
+                console.log("⏳ Timer started, resetting elapsed time to 00:00:00");
 
-            const handleTimerStart = (data: { startSignal: boolean; documentId: string; studentUUID: string }) => {
-                if (data.documentId === documentId && data.studentUUID === studentUUID) {
-                    console.log('Timer start signal received, starting chronometer...');
+                setCurrentElapsedTime("00:00:00");
+                if (interval) clearInterval(interval);
+                const startTime = Date.now(); // Use const here
 
-                    setCurrentElapsedTime('00:00:00');
-                    let elapsedSeconds = 0;
+                interval = setInterval(() => {
+                    const elapsedMs = Date.now() - startTime;
+                    const elapsedHours = Math.floor(elapsedMs / 3600000);
+                    const elapsedMinutes = Math.floor((elapsedMs % 3600000) / 60000);
+                    const elapsedSeconds = Math.floor((elapsedMs % 60000) / 1000);
 
-                    if (timerInterval) clearInterval(timerInterval);
+                    setCurrentElapsedTime(
+                        `${String(elapsedHours).padStart(2, '0')}:${String(elapsedMinutes).padStart(2, '0')}:${String(elapsedSeconds).padStart(2, '0')}`
+                    );
+                }, 1000);
+            }
+        });
 
-                    timerInterval = setInterval(() => {
-                        elapsedSeconds++;
-                        const hours = Math.floor(elapsedSeconds / 3600);
-                        const minutes = Math.floor((elapsedSeconds % 3600) / 60);
-                        const seconds = elapsedSeconds % 60;
-                        setCurrentElapsedTime(
-                            `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-                        );
-                    }, 1000);
+        const fetchUpdatedStudentData = async () => {
+            if (!studentData) return;
+            const studentClassName = studentData.className || firstStudent?.className || '';
+
+            try {
+                const response = await fetch('/api/student/fetch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ documentId, className: studentClassName, studentUUID }),
+                });
+
+                if (!response.ok) {
+                    console.error("❌ Failed to fetch student data");
+                    return;
                 }
-            };
 
-            const handleTimerStop = (data: { stopSignal: boolean; documentId: string; studentUUID: string }) => {
-                if (data.documentId === documentId && data.studentUUID === studentUUID) {
-                    console.log('Timer stop signal received, stopping chronometer...');
-                    if (timerInterval) clearInterval(timerInterval);
+                const { studentData } = await response.json();
+                console.log("📥 Updated student data received:", studentData);
+
+                setStudentData(studentData);
+                setCurrentElapsedTime(studentData.auditElapsedTime || "00:00");
+            } catch (error) {
+                console.error("❌ Error fetching updated student data:", error);
+            }
+        };
+
+
+        channel.bind('timer-stopped', (data: { documentId: string; studentUUID: string }) => {
+            if (data.documentId === documentId && data.studentUUID === studentUUID) {
+                console.log("⏹️ Timer stopped, fetching updated times from DB...");
+                if (interval) {
+                    clearInterval(interval);
+                    interval = null;
                 }
-            };
 
-            channel.bind('timer-started', handleTimerStart);
-            channel.bind('timer-stopped', handleTimerStop);
+                fetchUpdatedStudentData();
+            }
+        });
 
-            return () => {
-                if (timerInterval) clearInterval(timerInterval);
-                channel.unbind('timer-started', handleTimerStart);
-                channel.unbind('timer-stopped', handleTimerStop);
-                pusherClient.unsubscribe('timer-channel');
-            };
-        }
-    }, [pusherClient, documentId, studentUUID]);
-
+        return () => {
+            channel.unbind_all();
+            pusherClient.unsubscribe('timer-channel');
+            if (interval) clearInterval(interval);
+        };
+    }, [pusherClient, documentId, studentUUID, studentData, firstStudent, saveUserState]);
 
 
     return (
