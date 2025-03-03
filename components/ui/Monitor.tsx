@@ -59,22 +59,70 @@ const Monitor: React.FC<MonitorProps> = ({
     }, [pusherClient]);
 
     useEffect(() => {
-        if (pusherClient && documentId && studentUUID) {
-            const channelName = `exam-break-updates`;
-            const eventName = 'break-status-changed';
-
-            const channel = pusherClient.subscribe(channelName);
-
-            channel.bind(eventName, (data: BreakStatusData) => {
-                if (data && data.documentId === documentId && data.studentUUID === studentUUID) {
-                    setCurrentIsBrakeActive(data.isBreakActive);
+        const fetchBreakStatus = async () => {
+            if (!studentUUID || !documentId) {
+                console.log('Skipping fetch: studentUUID or documentId is not available yet.');
+                return; // Ensure fetch is only made once the required data is available
+            }
+    
+            try {
+                console.log('Fetching break status...');
+                console.log('Requesting with data:', { studentUUID, documentId });
+    
+                const response = await fetch('/api/exam-ticket', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ studentUUID, documentId }),
+                });
+    
+                console.log('Received response status:', response.status);
+          
+                if (!response.ok) {
+                    console.error('Failed to fetch break status:', response.statusText);
+                    const errorBody = await response.text();
+                    console.error('Error response body:', errorBody);
+                    return;
                 }
-            });
+          
+                const { isBreakActive, startTime, endTime } = await response.json();
+                console.log('Break status response:', { isBreakActive, startTime, endTime });
+          
+                if (isBreakActive) {
+                    setCurrentIsBrakeActive(true);
+                    setCurrentStartTime(startTime);
+                    setCurrentEndTime(endTime);
+                }
+            } catch (error) {
+                console.error('Error fetching break status:', error);
+            }
+        };
+    
+        // Delay the fetch by 500ms to ensure the page has loaded first
+        const timer = setTimeout(() => {
+            fetchBreakStatus();
+        }, 500); // delay by 500ms (adjust as necessary)
+      
+        return () => clearTimeout(timer); // cleanup if the component is unmounted before the timeout
+    }, [studentUUID, documentId]);  // Add dependencies for when these change
+    
 
-            return () => {
-                channel.unbind_all();
-                pusherClient.unsubscribe(channelName);
-            };
+    useEffect(() => {
+        if (pusherClient && documentId && studentUUID) {
+          const channelName = `exam-break-updates`;
+          const eventName = 'break-status-changed';
+    
+          const channel = pusherClient.subscribe(channelName);
+    
+          channel.bind(eventName, (data: BreakStatusData) => {
+            if (data && data.documentId === documentId && data.studentUUID === studentUUID) {
+              setCurrentIsBrakeActive(data.isBreakActive);
+            }
+          });
+    
+          return () => {
+            channel.unbind_all();
+            pusherClient.unsubscribe(channelName);
+          };
         }
     }, [pusherClient, documentId, studentUUID]);
 
