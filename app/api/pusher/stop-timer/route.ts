@@ -31,7 +31,6 @@ interface Exam {
     };
 }
 
-
 export async function POST(req: NextRequest) {
     try {
         const { documentId, studentUUID, className } = await req.json();
@@ -92,10 +91,8 @@ export async function POST(req: NextRequest) {
             return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
         };
 
-
         const formattedStopTime = getCurrentTimeHHMM();
         const elapsedTimeFormatted = calculateElapsedTime(student.auditStartTime!, formattedStopTime);
-
 
         const update = {
             $set: {
@@ -105,7 +102,6 @@ export async function POST(req: NextRequest) {
                 [`classes.${className}.students.$[studentElem].examEndTime`]: formattedStopTime,
             },
         };
-
 
         const options = {
             arrayFilters: [{ "studentElem._id": studentUUID }],
