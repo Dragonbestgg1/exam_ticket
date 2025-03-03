@@ -48,22 +48,50 @@ const Monitor: React.FC<MonitorProps> = ({
     const [currentStartTime, setCurrentStartTime] = useState(startTime);
     const [currentEndTime, setCurrentEndTime] = useState(endTime);
     const [currentElapsedTime, setCurrentElapsedTime] = useState(elapsedTime);
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const pusherClient = usePusher();
     const pusherClientRef = useRef(pusherClient);
+    
+    // Initialize the timerRef
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+
     useEffect(() => {
         pusherClientRef.current = pusherClient;
     }, [pusherClient]);
 
     useEffect(() => {
+        if (pusherClient && documentId && studentUUID) {
+            const channelName = `exam-break-updates`;
+            const eventName = 'break-status-changed';
+
+            const channel = pusherClient.subscribe(channelName);
+
+            channel.bind(eventName, (data: BreakStatusData) => {
+                if (data && data.documentId === documentId && data.studentUUID === studentUUID) {
+                    setCurrentIsBrakeActive(data.isBreakActive);
+                }
+            });
+
+            return () => {
+                channel.unbind_all();
+                pusherClient.unsubscribe(channelName);
+            };
+        }
+    }, [pusherClient, documentId, studentUUID]);
+
+    useEffect(() => {
+
         if (!pusherClient || !documentId) return;
 
-        const channel = pusherClient.subscribe('student-updates');
+        const channelName = 'student-updates';
         const eventName = 'student-changed';
 
+        const channel = pusherClient.subscribe(channelName);
+
+        channel.unbind(eventName);
+
         const handleStudentUpdate = async (data: { documentId: string; studentUUID: string; className: string }) => {
-            if (data.documentId === documentId) {
+            if (data?.documentId === documentId) {
                 try {
                     const response = await fetch('/api/student/fetch', {
                         method: 'POST',
@@ -76,15 +104,23 @@ const Monitor: React.FC<MonitorProps> = ({
                     });
 
                     if (!response.ok) {
-                        console.error('Failed to fetch student data:', response.statusText);
+                        console.error('Failed to fetch student data:', response.statusText, response.status);
+                        try {
+                            const errorBody = await response.json();
+                            console.error('Response body:', errorBody);
+                        } catch (bodyError) {
+                            console.error('Error reading response body:', bodyError);
+                        }
                         return;
                     }
 
                     const { studentData } = await response.json();
                     setStudentData(studentData);
+
                     setCurrentStartTime(studentData.examStartTime || startTime);
                     setCurrentEndTime(studentData.examEndTime || endTime);
-                    setCurrentElapsedTime(studentData.auditElapsedTime || '00:00:00');
+                    setCurrentElapsedTime(elapsedTime);
+
                 } catch (error) {
                     console.error('Error fetching student data:', error);
                 }
@@ -95,9 +131,37 @@ const Monitor: React.FC<MonitorProps> = ({
 
         return () => {
             channel.unbind(eventName, handleStudentUpdate);
-            pusherClient.unsubscribe('student-updates');
+            pusherClientRef.current.unsubscribe(channelName);
         };
-    }, [documentId, studentUUID, pusherClient]);
+
+    }, [documentId, studentUUID, pusherClient, startTime, endTime, elapsedTime]);
+
+    const saveUserState = useCallback(async (studentUUID: string, documentId: string, className: string) => {
+        try {
+            await fetch('/api/user-state/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    lastSelectedStudentId: studentUUID,
+                    documentId,
+                    className,
+                }),
+            });
+        } catch (error) {
+            console.error('Error saving user state:', error);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (studentData?.name && studentData?._id && documentId) {
+            console.log('Triggering saveUserState with:', {
+                studentUUID: studentData._id,
+                documentId,
+                className: studentData.className
+            });
+            saveUserState(studentData._id, documentId, studentData.className || '');
+        }
+    }, [studentData, documentId, saveUserState]);
 
     useEffect(() => {
         if (!pusherClient || !documentId || !studentUUID) return;

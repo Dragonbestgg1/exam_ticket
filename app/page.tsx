@@ -609,7 +609,6 @@ export default function HomePage() {
                 startTime={formatHM(firstStudent?.auditStartTime || firstStudent?.examStartTime)}
                 endTime={formatHM(firstStudent?.auditEndTime || firstStudent?.examEndTime)}
                 elapsedTime={formatTime(elapsedTime)}
-                extraTime={formatTime(extraTime)}
                 documentId={currentDocumentId}
                 studentUUID={firstStudent?._id}
                 isBrakeActive={isBrakeActiveFromPusher}
