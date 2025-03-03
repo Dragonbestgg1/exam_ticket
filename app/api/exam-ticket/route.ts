@@ -19,7 +19,13 @@ export async function POST(req: Request) {
             .toArray();
 
         if (breaks.length === 0) {
-            return new Response(JSON.stringify({ error: 'No break records found for this student.' }), { status: 404 });
+            // Return a response indicating no breaks are scheduled.
+            return new Response(JSON.stringify({
+                isBreakActive: false,
+                startTime: null,
+                endTime: null,
+                message: "No break records found for this student."
+            }), { status: 200 }); // Change status to 200 (OK)
         }
 
         const currentTime = new Date();
