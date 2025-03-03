@@ -8,8 +8,8 @@ import { StudentRecord } from '@/types/types';
 /* eslint-disable react-hooks/rules-of-hooks */
 
 interface AuditButtonsProps {
-    onStart: (startTime: string) => Promise<void>; // Changed to Promise<void>
-    onEnd: (endTime: string) => Promise<void>;     // Added onEnd prop
+    onStart: (startTime: string) => Promise<void>;
+    onEnd: (endTime: string) => Promise<void>;
     onPreviousStudent: () => Promise<void>;
     onNextStudent: () => Promise<void>;
     examStartTime: string | null | undefined;
@@ -87,7 +87,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
         return roundTimeToNearestMinute(now);
     };
 
-    const handleLeftClick = async () => { // Changed to async
+    const handleLeftClick = async () => {
         const arrowIcon = leftArrowWrapperRef.current?.querySelector('svg');
         if (arrowIcon) {
             arrowIcon.style.transform = 'translateX(-10px)';
@@ -97,10 +97,10 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
                 }
             }, 300);
         }
-        await onPreviousStudent(); // Await the promise
+        await onPreviousStudent();
     };
 
-    const handleRightClick = async () => { // Changed to async
+    const handleRightClick = async () => {
         const arrowIcon = rightArrowWrapperRef.current?.querySelector('svg');
         if (arrowIcon) {
             arrowIcon.style.transform = 'translateX(10px)';
@@ -110,10 +110,10 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
                 }
             }, 300);
         }
-        await onNextStudent(); // Await the promise
+        await onNextStudent();
     };
 
-    const handleStartClick = async () => { // Changed to async
+    const handleStartClick = async () => {
         if (!startDisabled && !isStartActive) {
             if (!className) {
                 console.error("❌ Error: className is missing!");
@@ -121,7 +121,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
             }
             setIsStartActive(true);
             setIsEndActive(false);
-            await onStart(getCurrentTimeHHMM()); // Use getCurrentTimeHHMM to get rounded time and await
+            await onStart(getCurrentTimeHHMM());
 
             try {
                 console.log("✅ Sending Start Request:", { documentId, studentUUID: firstStudent?._id, className });
@@ -145,7 +145,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
         }
     };
 
-    const handleEndClick = async () => { // Changed to async
+    const handleEndClick = async () => {
         if (!isEndActive) {
             if (!className) {
                 console.error("❌ Error: className is missing!");
@@ -153,7 +153,7 @@ const AuditButtons: React.FC<AuditButtonsProps> = ({
             }
             setIsEndActive(true);
             setIsStartActive(false);
-            await onEnd(getCurrentTimeHHMM()); // Use getCurrentTimeHHMM to get rounded time and await
+            await onEnd(getCurrentTimeHHMM());
 
             try {
                 console.log("✅ Sending Stop Request:", { documentId, studentUUID: firstStudent?._id, className });

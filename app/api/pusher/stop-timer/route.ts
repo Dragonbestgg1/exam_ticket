@@ -11,7 +11,6 @@ const pusher = new Pusher({
     useTLS: true,
 });
 
-// Define TypeScript interfaces for better type safety
 interface Student {
     _id: string;
     auditStartTime?: string;
@@ -19,12 +18,10 @@ interface Student {
     auditElapsedTime?: string;
     examStartTime?: string;
     examEndTime?: string;
-    // Add other student properties as needed
 }
 
 interface Class {
     students: Student[];
-    // Add other class properties as needed
 }
 
 interface Exam {
@@ -32,7 +29,6 @@ interface Exam {
     classes: {
         [className: string]: Class;
     };
-    // Add other exam properties as needed
 }
 
 
@@ -64,7 +60,7 @@ export async function POST(req: NextRequest) {
 
         console.log("✅ MongoDB Query:", JSON.stringify(query));
 
-        const exam = await examsCollection.findOne<Exam>(query); // Use the Exam interface here
+        const exam = await examsCollection.findOne<Exam>(query);
         if (!exam) {
             console.error("❌ Student or exam not found in MongoDB");
             return NextResponse.json({ status: 'error', message: 'Student not found' }, { status: 404 });
@@ -76,7 +72,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ status: 'error', message: 'Audit start time missing' }, { status: 400 });
         }
 
-        const calculateElapsedTime = (startTime: string, stopTime: string): string => { // Pass stopTime as argument
+        const calculateElapsedTime = (startTime: string, stopTime: string): string => {
             const [startHours, startMinutes] = startTime.split(":").map(Number);
             const [stopHours, stopMinutes] = stopTime.split(":").map(Number);
 
@@ -98,7 +94,7 @@ export async function POST(req: NextRequest) {
 
 
         const formattedStopTime = getCurrentTimeHHMM();
-        const elapsedTimeFormatted = calculateElapsedTime(student.auditStartTime!, formattedStopTime); // Pass formattedStopTime
+        const elapsedTimeFormatted = calculateElapsedTime(student.auditStartTime!, formattedStopTime);
 
 
         const update = {

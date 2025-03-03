@@ -187,7 +187,7 @@ const Monitor: React.FC<MonitorProps> = ({
 
                 setCurrentElapsedTime("00:00:00");
                 if (interval) clearInterval(interval);
-                const startTime = Date.now(); // Use const here
+                const startTime = Date.now();
 
                 interval = setInterval(() => {
                     const elapsedMs = Date.now() - startTime;

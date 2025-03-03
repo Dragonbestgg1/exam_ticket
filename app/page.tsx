@@ -303,7 +303,6 @@ export default function HomePage() {
                     setCurrentStudentList(firstClass.students);
                     setCurrentStudentIndex(0);
                     setFirstStudent(firstStudentData);
-                    console.log("updateFirstStudent - firstClass._id:", firstClass._id);
                     setCurrentDocumentId(firstClass._id || null);
                 } else {
                     setFirstStudent(null);
@@ -338,7 +337,6 @@ export default function HomePage() {
             if (data) {
                 setSelectedExam(data.selectedExam);
                 setSelectedClass(data.selectedClass);
-                console.log("Dropdowns updated via Pusher:", data);
             }
         });
 
@@ -509,7 +507,6 @@ export default function HomePage() {
                 const response = await fetch(`/api/user-state/fetch`);
                 if (response.ok) {
                     const userState = await response.json();
-                    console.log('Data from db', userState)
                     if (userState?.lastSelectedStudentId) {
                         const index = currentStudentList.findIndex(student => student._id === userState.lastSelectedStudentId);
                         if (index !== -1) {
